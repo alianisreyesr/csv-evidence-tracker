@@ -1,0 +1,19 @@
+id,test_case_id,phase_id,executed_by,executed_at,result,actual_result,evidence_ref,notes
+1,1,1,ana.reyes,2026-01-14T09:15:00Z,PASS,User authenticated and dashboard loaded as expected.,EVID-IQ-001,Tested with synthetic test user account.
+2,2,1,ana.reyes,2026-01-14T09:22:00Z,PASS,Error message displayed; access denied.,EVID-IQ-002,
+3,3,1,ana.reyes,2026-01-14T09:35:00Z,PASS,Account locked after 5th failed attempt; admin alert generated.,EVID-IQ-003,
+4,4,1,carlos.mendez,2026-01-15T10:00:00Z,PASS,Admin accessed all modules without restriction.,EVID-IQ-004,
+5,5,1,carlos.mendez,2026-01-15T10:18:00Z,PASS,Viewer received 403 error on deviation creation attempt.,EVID-IQ-005,
+6,6,2,ana.reyes,2026-01-22T08:45:00Z,PASS,Audit entry created with correct actor timestamp and record ID.,EVID-OQ-001,
+7,7,2,ana.reyes,2026-01-22T09:10:00Z,PASS,Before and after status captured in audit log.,EVID-OQ-002,
+8,8,2,carlos.mendez,2026-01-22T09:30:00Z,FAIL,API returned 200 instead of 405; audit record was not modified but endpoint allowed PUT.,EVID-OQ-003,Unexpected HTTP method accepted — deviation raised.
+9,9,2,maria.santos,2026-01-23T11:00:00Z,PASS,Deviation created with Open status and correct timestamp.,EVID-OQ-004,
+10,10,2,maria.santos,2026-01-23T11:20:00Z,PASS,422 returned with detail field missing severity.,EVID-OQ-005,
+11,11,2,ana.reyes,2026-01-26T14:00:00Z,PASS,Status transitioned; audit event appended.,EVID-OQ-006,
+12,12,2,ana.reyes,2026-01-26T14:30:00Z,PASS,400 returned with correct transition rule message.,EVID-OQ-007,
+13,13,2,carlos.mendez,2026-01-27T09:00:00Z,PASS,All 10 records imported; import summary returned.,EVID-OQ-008,
+14,14,2,carlos.mendez,2026-01-27T09:45:00Z,PASS,3 duplicates flagged and skipped; 0 imported.,EVID-OQ-009,
+15,15,2,maria.santos,2026-01-28T10:00:00Z,PASS,Risk score = 7; classified as High.,EVID-OQ-010,
+16,16,2,maria.santos,2026-01-28T10:20:00Z,PASS,Risk score = 0; classified as Low.,EVID-OQ-011,
+17,20,2,ana.reyes,2026-01-29T15:00:00Z,FAIL,Session persisted beyond 15 minutes in testing environment — timeout not enforced.,EVID-OQ-012,Possible environment config issue. Deviation raised.
+18,21,2,ana.reyes,2026-01-29T15:45:00Z,BLOCKED,Cannot test until session timeout (TC-OQ-012) is resolved.,EVID-OQ-013,Blocked pending deviation DEV-003 resolution.

@@ -1,0 +1,13 @@
+id,code,title,description,category,priority,phase,status
+1,URS-001,User Authentication,The system shall authenticate users with a unique username and password before granting access.,Security,Critical,IQ,Approved
+2,URS-002,Role-Based Access Control,The system shall restrict access to functions based on assigned user roles (Admin / Reviewer / Viewer).,Security,Critical,IQ,Approved
+3,URS-003,Audit Trail Capture,The system shall record all data creation modification and deletion events with actor timestamp and change detail.,Regulatory,Critical,OQ,Approved
+4,URS-004,Deviation Record Creation,The system shall allow authorized users to create deviation records with title description severity and affected batch.,Functional,High,OQ,Approved
+5,URS-005,Deviation Status Workflow,The system shall support deviation status transitions: Open > Under Investigation > Resolved / Accepted with Risk.,Functional,High,OQ,Approved
+6,URS-006,Batch Data Import,The system shall accept batch deviation data via CSV upload with field validation and duplicate detection.,Functional,Medium,OQ,Approved
+7,URS-007,Risk Score Calculation,The system shall calculate a risk score for each deviation based on severity recurrence and overdue status.,Functional,High,OQ,Approved
+8,URS-008,Report Export,The system shall allow export of deviation reports in CSV and PDF format.,Functional,Medium,PQ,Approved
+9,URS-009,System Availability,The system shall maintain 99.5% uptime during business hours (07:00–19:00 local time).,Performance,High,PQ,Approved
+10,URS-010,Data Backup,The system shall perform automated daily backups with a 30-day retention period.,Regulatory,High,IQ,Approved
+11,URS-011,Session Timeout,The system shall terminate inactive sessions after 15 minutes to prevent unauthorized access.,Security,Medium,OQ,Approved
+12,URS-012,Electronic Signature,The system shall require electronic confirmation (actor + reason) for final deviation closure per 21 CFR Part 11.,Regulatory,Critical,OQ,Approved

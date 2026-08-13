@@ -1,0 +1,4 @@
+id,name,description,status,started_at,completed_at
+1,IQ,Installation Qualification — verifies the system is installed correctly per approved specifications.,Completed,2026-01-10,2026-01-17
+2,OQ,Operational Qualification — verifies the system operates as intended across all functional requirements.,In Progress,2026-01-20,
+3,PQ,Performance Qualification — verifies the system performs reliably under representative production conditions.,Planned,,

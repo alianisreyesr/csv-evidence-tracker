@@ -1,0 +1,22 @@
+id,requirement_id,code,title,description,test_type,expected_result
+1,1,TC-IQ-001,Valid Login,Attempt login with valid credentials.,Functional,User is authenticated and redirected to the dashboard.
+2,1,TC-IQ-002,Invalid Password Rejection,Attempt login with incorrect password.,Negative,System displays error message and denies access.
+3,1,TC-IQ-003,Account Lockout After Failed Attempts,Attempt login with wrong password 5 consecutive times.,Boundary,Account is locked and administrator is notified.
+4,2,TC-IQ-004,Admin Role Access,Log in as Admin and verify access to all modules.,Functional,All modules are accessible to Admin role.
+5,2,TC-IQ-005,Viewer Role Restriction,Log in as Viewer and attempt to create a deviation.,Negative,System denies creation and displays permission error.
+6,3,TC-OQ-001,Audit Entry on Deviation Create,Create a new deviation and verify audit log entry.,Functional,Audit log contains actor timestamp action and record ID.
+7,3,TC-OQ-002,Audit Entry on Status Change,Change deviation status and verify audit trail update.,Functional,Audit log reflects before and after status with actor.
+8,3,TC-OQ-003,Audit Log Immutability,Attempt to modify an existing audit log entry via API.,Negative,System returns 405 Method Not Allowed; no record is altered.
+9,4,TC-OQ-004,Create Deviation Record,Submit a valid deviation with all required fields.,Functional,Deviation is created with status Open and system-generated timestamp.
+10,4,TC-OQ-005,Missing Required Field Rejection,Submit a deviation without the severity field.,Negative,System returns 422 Unprocessable Entity with field error detail.
+11,5,TC-OQ-006,Status Transition Open to Under Investigation,Transition a deviation from Open to Under Investigation.,Functional,Status updates and audit event is appended.
+12,5,TC-OQ-007,Invalid Status Transition,Attempt to transition a Resolved deviation back to Open.,Negative,System returns 400 Bad Request with transition rule explanation.
+13,6,TC-OQ-008,CSV Batch Import Valid File,Upload a well-formed CSV with 10 deviation records.,Functional,All 10 records are imported; summary report returned.
+14,6,TC-OQ-009,CSV Import Duplicate Detection,Upload a CSV containing 3 records already in the system.,Boundary,Duplicates are flagged and skipped; 0 duplicate records imported.
+15,7,TC-OQ-010,Risk Score High Threshold,Create a critical overdue deviation with recurrence flag.,Functional,Risk score is >= 5 and classified as High.
+16,7,TC-OQ-011,Risk Score Low Threshold,Create a minor on-time deviation with no recurrence.,Functional,Risk score is <= 1 and classified as Low.
+17,8,TC-PQ-001,CSV Export Completeness,Export all deviations as CSV and verify all columns are present.,Functional,CSV contains all expected columns for every record.
+18,9,TC-PQ-002,Load Test — 100 Concurrent Users,Simulate 100 concurrent API requests during business hours.,Performance,Response time <= 2 seconds for 95% of requests.
+19,10,TC-IQ-006,Backup File Exists,Verify backup file was created after scheduled backup job.,Functional,Backup file present in target directory with correct timestamp.
+20,11,TC-OQ-012,Session Timeout Enforcement,Leave a session idle for 16 minutes and attempt an action.,Functional,System terminates session and redirects to login page.
+21,12,TC-OQ-013,Electronic Signature on Closure,Close a deviation and verify e-signature prompt with reason.,Functional,Closure requires actor confirmation and reason; appended to audit log.
