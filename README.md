@@ -13,7 +13,7 @@
 
 *A portfolio-safe Computer System Validation (CSV) evidence tracker*
 
-[Quick Start](#quick-start) · [Architecture](docs/architecture.md) · [Portfolio Safety](docs/PORTFOLIO_SAFETY.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
+[Quick Start](#quick-start) · [Architecture](docs/architecture.md) · [Regulatory References](docs/REGULATORY_REFERENCES.md) · [Portfolio Safety](docs/PORTFOLIO_SAFETY.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
 
 </div>
 
@@ -47,7 +47,7 @@ A full-stack prototype that demonstrates how a Quality / CSV professional approa
 | **API Engineering** | FastAPI routers, Pydantic models, clean separation of concerns |
 | **Frontend for Reviewers** | React dashboard (Dashboard, RTM, Test Queue, Deviations, Audit Log) |
 | **Containerization** | Docker + docker-compose + Nginx reverse proxy |
-| **Documentation Discipline** | Portfolio safety, validation boundary, architecture, review checklist |
+| **Documentation Discipline** | Portfolio safety, validation boundary, **FDA/MHRA/PIC/S/EU references**, architecture, review checklist |
 
 ---
 
@@ -75,7 +75,7 @@ A full-stack prototype that demonstrates how a Quality / CSV professional approa
    └──────────────────┘      └──────────────────┘  └─────────────┘
 ```
 
-See [docs/architecture.md](docs/architecture.md) and [docs/validation-approach.md](docs/validation-approach.md).
+See [docs/architecture.md](docs/architecture.md) · [docs/validation-approach.md](docs/validation-approach.md) · [docs/REGULATORY_REFERENCES.md](docs/REGULATORY_REFERENCES.md).
 
 ---
 
@@ -135,13 +135,13 @@ csv-evidence-tracker/
 │   ├── database.py
 │   ├── scoring.py
 │   ├── audit_middleware.py
-│   └── routers/          # requirements, rtm, test_cases, executions, phases, deviations, audit
-├── frontend/             # React + Vite + Tailwind dashboard
-├── data/                 # Synthetic CSV seed data
-├── sql/                  # Schema
-├── docs/                 # Portfolio safety, architecture, validation boundary, checklists
-├── tests/                # pytest suite
-├── nginx/                # Reverse proxy config
+│   └── routers/
+├── frontend/
+├── data/
+├── sql/
+├── docs/                 # safety, architecture, REGULATORY_REFERENCES, checklists
+├── tests/
+├── nginx/
 ├── docker-compose.yml
 ├── Dockerfile
 └── requirements.txt
@@ -151,9 +151,10 @@ csv-evidence-tracker/
 
 ## Portfolio Safety & Governance
 
-- **Synthetic data only** — see [docs/PORTFOLIO_SAFETY.md](docs/PORTFOLIO_SAFETY.md)
-- Explicit **validation boundary** — see [docs/VALIDATION_BOUNDARY.md](docs/VALIDATION_BOUNDARY.md)
-- Review checklist for anyone evaluating the prototype — [docs/REVIEW_CHECKLIST.md](docs/REVIEW_CHECKLIST.md)
+- **Synthetic data only** — [docs/PORTFOLIO_SAFETY.md](docs/PORTFOLIO_SAFETY.md)
+- **Validation boundary** — [docs/VALIDATION_BOUNDARY.md](docs/VALIDATION_BOUNDARY.md)
+- **Regulatory context (FDA, MHRA, PIC/S, EU, CSA)** — [docs/REGULATORY_REFERENCES.md](docs/REGULATORY_REFERENCES.md)
+- Review checklist — [docs/REVIEW_CHECKLIST.md](docs/REVIEW_CHECKLIST.md)
 
 This is a **learning and portfolio artifact**. A real validated system would additionally require formal IQ/OQ/PQ protocols, approved SOPs, change control, role-based access, and controlled environments.
 
