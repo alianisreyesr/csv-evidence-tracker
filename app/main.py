@@ -20,7 +20,7 @@ app = FastAPI(
         "All data is synthetic and non-confidential. "
         "Not for use in regulated production environments."
     ),
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
