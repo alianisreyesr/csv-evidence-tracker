@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.database import init_db
 from app.audit_middleware import AuditMiddleware
-from app.routers import requirements, test_cases, executions, deviations, phases, audit
+from app.routers import requirements, test_cases, executions, deviations, phases, audit, rtm
 
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app.include_router(test_cases.router, prefix="/test-cases", tags=["Test Cases"])
 app.include_router(executions.router, prefix="/executions", tags=["Executions"])
 app.include_router(deviations.router, prefix="/deviations", tags=["Deviations"])
 app.include_router(audit.router, prefix="/audit-log", tags=["Audit Log"])
+app.include_router(rtm.router, prefix="/rtm", tags=["Traceability"])
 
 
 @app.get("/health", tags=["Health"])
