@@ -41,7 +41,9 @@ def classify_deviation_risk(
         score += 1
         reasons.append("Recurrence flag set (+1)")
 
-    if score >= 5:
+    if severity == "Critical":
+        classification = "High"
+    elif score >= 5:
         classification = "High"
     elif score >= 2:
         classification = "Medium"

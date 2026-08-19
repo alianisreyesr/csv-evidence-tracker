@@ -9,6 +9,19 @@ import json
 router = APIRouter()
 
 
+def _attach_risk_fields(deviation: dict) -> dict:
+    risk = classify_deviation_risk(
+        severity=deviation["severity"],
+        status=deviation["status"],
+        created_at=deviation["created_at"],
+        assigned_to=deviation.get("assigned_to"),
+    )
+    deviation["risk_score"] = risk["score"]
+    deviation["risk_classification"] = risk["classification"]
+    deviation["contributing_reasons"] = risk["contributing_reasons"]
+    return deviation
+
+
 @router.get("")
 async def list_deviations(
     status: Optional[str] = Query(None),
@@ -26,20 +39,7 @@ async def list_deviations(
     async with get_db() as db:
         rows = await (await db.execute(sql, params)).fetchall()
 
-    result = []
-    for r in rows:
-        d = dict(r)
-        risk = classify_deviation_risk(
-            severity=d["severity"],
-            status=d["status"],
-            created_at=d["created_at"],
-            assigned_to=d.get("assigned_to"),
-        )
-        d["risk_score"] = risk["score"]
-        d["risk_classification"] = risk["classification"]
-        d["contributing_reasons"] = risk["contributing_reasons"]
-        result.append(d)
-    return result
+    return [_attach_risk_fields(dict(row)) for row in rows]
 
 
 @router.get("/{dev_id}")
@@ -48,15 +48,7 @@ async def get_deviation(dev_id: int):
         row = await (await db.execute("SELECT * FROM deviations WHERE id=?", (dev_id,))).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Deviation not found")
-    d = dict(row)
-    risk = classify_deviation_risk(
-        severity=d["severity"],
-        status=d["status"],
-        created_at=d["created_at"],
-        assigned_to=d.get("assigned_to"),
-    )
-    d.update(risk)
-    return d
+    return _attach_risk_fields(dict(row))
 
 
 @router.post("", status_code=201)
@@ -83,13 +75,7 @@ async def create_deviation(
         )
         await db.commit()
         row = await (await db.execute("SELECT * FROM deviations WHERE id=?", (dev_id,))).fetchone()
-    d = dict(row)
-    risk = classify_deviation_risk(
-        severity=d["severity"], status=d["status"],
-        created_at=d["created_at"], assigned_to=d.get("assigned_to")
-    )
-    d.update(risk)
-    return d
+    return _attach_risk_fields(dict(row))
 
 
 @router.post("/{dev_id}/resolve")

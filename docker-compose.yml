@@ -1,8 +1,4 @@
-version: "3.9"
-
 services:
-
-  # ── FastAPI Backend ──────────────────────────────────────────────────
   api:
     build:
       context: .
@@ -10,20 +6,20 @@ services:
     container_name: csv_tracker_api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=sqlite:////app/data/evidence.db
-      - ENVIRONMENT=production
+      DATABASE_PATH: /app/data/csv_tracker.db
+      DATA_DIR: /app/data
+      ENVIRONMENT: production
     volumes:
-      - ./data:/app/data          # persist SQLite + seed CSVs
+      - ./data:/app/data
     networks:
       - csv_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 6
       start_period: 10s
 
-  # ── React Frontend ───────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -36,7 +32,6 @@ services:
       api:
         condition: service_healthy
 
-  # ── Nginx Reverse Proxy ──────────────────────────────────────────────
   nginx:
     image: nginx:1.25-alpine
     container_name: csv_tracker_proxy
@@ -48,12 +43,11 @@ services:
     networks:
       - csv_net
     depends_on:
-      - api
-      - frontend
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_started
 
 networks:
   csv_net:
     driver: bridge
-
-volumes:
-  data:

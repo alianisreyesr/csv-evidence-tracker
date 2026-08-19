@@ -1,10 +1,11 @@
 import aiosqlite
 import csv
+import os
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-DB_PATH = Path("data/csv_tracker.db")
-DATA_DIR = Path("data")
+DB_PATH = Path(os.getenv("DATABASE_PATH", "data/csv_tracker.db"))
+DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 
 
 @asynccontextmanager
@@ -16,6 +17,7 @@ async def get_db():
 
 
 async def init_db():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     schema = Path("sql/schema.sql").read_text()
     async with aiosqlite.connect(DB_PATH) as db:
         await db.executescript(schema)
