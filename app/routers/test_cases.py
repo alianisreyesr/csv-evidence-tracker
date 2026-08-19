@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.database import get_db
-from typing import List, Optional
+from typing import Optional
 
 router = APIRouter()
 
@@ -11,7 +11,8 @@ async def list_test_cases(
     requirement_id: Optional[int] = Query(None),
 ):
     sql = """
-        SELECT tc.*, r.code AS requirement_code, r.title AS requirement_title
+        SELECT tc.*, r.code AS requirement_code, r.title AS requirement_title,
+               r.phase AS requirement_phase
         FROM test_cases tc
         JOIN requirements r ON r.id = tc.requirement_id
         WHERE 1=1
@@ -34,7 +35,8 @@ async def get_test_case(case_id: int):
     async with get_db() as db:
         row = await (await db.execute(
             """
-            SELECT tc.*, r.code AS requirement_code, r.title AS requirement_title
+            SELECT tc.*, r.code AS requirement_code, r.title AS requirement_title,
+                   r.phase AS requirement_phase
             FROM test_cases tc
             JOIN requirements r ON r.id = tc.requirement_id
             WHERE tc.id=?
