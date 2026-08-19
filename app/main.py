@@ -49,17 +49,22 @@ async def health():
     }
 
 
+async def _count(db, sql: str) -> int:
+    row = await (await db.execute(sql)).fetchone()
+    return row[0]
+
+
 @app.get("/summary", tags=["Summary"])
 async def summary(request: Request):
     from app.database import get_db
     async with get_db() as db:
-        total_reqs = (await db.execute("SELECT COUNT(*) FROM requirements")).fetchone()[0]
-        total_tests = (await db.execute("SELECT COUNT(*) FROM test_cases")).fetchone()[0]
-        passed = (await db.execute("SELECT COUNT(*) FROM test_executions WHERE result='PASS'")).fetchone()[0]
-        failed = (await db.execute("SELECT COUNT(*) FROM test_executions WHERE result='FAIL'")).fetchone()[0]
-        blocked = (await db.execute("SELECT COUNT(*) FROM test_executions WHERE result='BLOCKED'")).fetchone()[0]
-        open_devs = (await db.execute("SELECT COUNT(*) FROM deviations WHERE status != 'Resolved'")).fetchone()[0]
-        total_exec = (await db.execute("SELECT COUNT(*) FROM test_executions")).fetchone()[0]
+        total_reqs = await _count(db, "SELECT COUNT(*) FROM requirements")
+        total_tests = await _count(db, "SELECT COUNT(*) FROM test_cases")
+        passed = await _count(db, "SELECT COUNT(*) FROM test_executions WHERE result='PASS'")
+        failed = await _count(db, "SELECT COUNT(*) FROM test_executions WHERE result='FAIL'")
+        blocked = await _count(db, "SELECT COUNT(*) FROM test_executions WHERE result='BLOCKED'")
+        open_devs = await _count(db, "SELECT COUNT(*) FROM deviations WHERE status != 'Resolved'")
+        total_exec = await _count(db, "SELECT COUNT(*) FROM test_executions")
         coverage_pct = round((total_exec / total_tests * 100), 1) if total_tests else 0
     return {
         "requirements": total_reqs,
