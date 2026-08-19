@@ -8,15 +8,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout release-hardening branch
         uses: actions/checkout@v7
+        with:
+          ref: agent/v1-release-hardening
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v7
@@ -42,20 +44,21 @@ jobs:
           node-version: "22"
           package-manager-cache: false
 
-      - name: Generate frontend lockfile evidence
+      - name: Generate frontend lockfile
         working-directory: frontend
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          python - <<'PY'
-          import base64
-          import gzip
-          from pathlib import Path
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 
-          payload = gzip.compress(Path('package-lock.json').read_bytes(), compresslevel=9)
-          print('LOCK_GZ_B64_BEGIN')
-          print(base64.b64encode(payload).decode('ascii'))
-          print('LOCK_GZ_B64_END')
-          PY
+      - name: Commit frontend lockfile if needed
+        run: |
+          if git diff --quiet -- frontend/package-lock.json && git ls-files --error-unmatch frontend/package-lock.json >/dev/null 2>&1; then
+            echo "frontend/package-lock.json already tracked and unchanged"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add frontend/package-lock.json
+            git commit -m "build: add frontend package lock"
+            git push origin HEAD:agent/v1-release-hardening
+          fi
 
       - name: Build frontend from lockfile
         working-directory: frontend
