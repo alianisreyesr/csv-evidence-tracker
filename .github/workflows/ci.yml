@@ -42,8 +42,23 @@ jobs:
           node-version: "22"
           package-manager-cache: false
 
-      - name: Build frontend
+      - name: Generate frontend lockfile evidence
         working-directory: frontend
         run: |
-          npm install --no-audit --no-fund
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          python - <<'PY'
+          import base64
+          import gzip
+          from pathlib import Path
+
+          payload = gzip.compress(Path('package-lock.json').read_bytes(), compresslevel=9)
+          print('LOCK_GZ_B64_BEGIN')
+          print(base64.b64encode(payload).decode('ascii'))
+          print('LOCK_GZ_B64_END')
+          PY
+
+      - name: Build frontend from lockfile
+        working-directory: frontend
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
           npm run build
