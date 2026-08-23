@@ -28,10 +28,13 @@ Computer System Validation work is not just about storing requirements or test r
 
 CSV Evidence Tracker demonstrates that workflow as an executable system:
 
-```text
-Requirement → Test Case → Execution → Deviation → Audit Evidence
-      │                                             │
-      └──────────── Requirements Traceability ──────┘
+```mermaid
+flowchart LR
+    REQ[Requirement] --> TC[Test Case]
+    TC --> EX[Execution]
+    EX --> DEV[Deviation]
+    DEV --> AUD[Audit Evidence]
+    REQ -.->|Requirements Traceability| AUD
 ```
 
 It combines a reviewer-facing UI with an API, structured SQLite persistence, explainable deviation risk scoring, CI checks, and a containerized deployment path.
@@ -74,29 +77,18 @@ The synthetic seed dataset exercised by the Compose smoke run contains **12 requ
 
 ## Architecture
 
-```text
-Synthetic CSV seed data
-        │
-        ▼
-┌──────────────────────┐
-│ SQLite evidence store│
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│ FastAPI API           │
-│ requirements · RTM   │
-│ tests · executions   │
-│ phases · deviations  │
-│ audit · summary      │
-└──────────┬───────────┘
-           │ /api/*
-           ▼
-┌──────────────────────┐       ┌──────────────────────┐
-│ Nginx reverse proxy  │──────▶│ React/Vite reviewer │
-│ /api/* → FastAPI     │       │ interface            │
-│ /*     → frontend    │       └──────────────────────┘
-└──────────────────────┘
+```mermaid
+flowchart TD
+    SEED[Synthetic CSV seed data]
+    DB[(SQLite evidence store)]
+    API["FastAPI API\nrequirements · RTM\ntests · executions\nphases · deviations\naudit · summary"]
+    NGINX["Nginx reverse proxy\n/api/* → FastAPI\n/* → frontend"]
+    UI[React/Vite reviewer interface]
+
+    SEED --> DB
+    DB --> API
+    API -->|/api/*| NGINX
+    NGINX --> UI
 ```
 
 See [architecture](docs/architecture.md), [validation approach](docs/validation-approach.md), and [regulatory references](docs/REGULATORY_REFERENCES.md).
