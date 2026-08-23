@@ -197,13 +197,21 @@ Reference documents:
 - [Regulatory References](docs/REGULATORY_REFERENCES.md)
 - [Review Checklist](docs/REVIEW_CHECKLIST.md)
 
-## Known post-v1 improvement areas
+## Engineering notes
 
-The v1.0.0 release prioritizes functional traceability and reproducible runtime evidence. Follow-on improvements include broader route-level tests, frontend code splitting, and dependency modernization. These are tracked as engineering improvements rather than hidden release blockers.
+v1.0.0 prioritizes functional traceability and reproducible runtime evidence. Identified follow-on improvements — broader route-level tests, frontend code splitting, dependency modernization — are tracked openly as engineering opportunities, consistent with a continuous-improvement mindset in regulated environments.
 
-## Related portfolio project
+---
 
-[Quality Deviation Risk Monitor](https://github.com/alianisreyesr/quality-deviation-risk-monitor) focuses more deeply on explainable risk scoring and reviewer prioritization.
+## Regulated Portfolio Ecosystem
+
+| Project | Domain Focus | Status |
+|---|---|---|
+| **[Quality Deviation Risk Monitor](https://github.com/alianisreyesr/quality-deviation-risk-monitor)** | Deviation prioritization & explainable risk scoring | ✅ Active · 57 tests |
+| **[Data Integrity Case File](https://github.com/alianisreyesr/data-integrity-case-file)** | ALCOA+ investigation, CAPA readiness, local AI triage | ✅ Active |
+| **[GxP Change Control](https://github.com/alianisreyesr/gxp-change-control)** | Controlled change lifecycle & approvals | ✅ Active · 68 tests |
+| **[CSA Assurance Planner](https://github.com/alianisreyesr/csa-assurance-planner)** | Risk-based software assurance planning, FDA CSA alignment | ✅ Active |
+| **[GxP Batch Data Pipeline](https://github.com/alianisreyesr/gxp-batch-data-pipeline)** | Batch manufacturing pipeline — DuckDB · dbt · Great Expectations | ✅ Active |
 
 ---
 
@@ -211,7 +219,7 @@ The v1.0.0 release prioritizes functional traceability and reproducible runtime 
 
 **Built by [Alianis Reyes-Reyes](https://www.linkedin.com/in/alianis-reyes-reyes/)**
 
-Information Systems @ UPRM · Former Eli Lilly Intern
+Information Systems @ UPRM · Eli Lilly Tech@Lilly Alumni
 
 *Every design decision asks: would this evidence still be trustworthy under inspection?*
 
