@@ -8,22 +8,15 @@ This document defines the proposed lifecycle for the core CSV Evidence Tracker e
 
 ## End-to-End Flow
 
-```text
-1. Define requirement
-        ↓
-2. Assess risk
-        ↓
-3. Design and approve test case
-        ↓
-4. Execute test
-        ↓
-5. Attach and review evidence
-        ↓
-6. Approve or reject the result
-        ↓
-7. Record all actions in the audit trail
-        ↓
-8. Verify requirement traceability
+```mermaid
+flowchart TB
+  A["Define requirement"] --> B["Assess risk"]
+  B --> C["Design and approve test case"]
+  C --> D["Execute test"]
+  D --> E["Attach and review evidence"]
+  E --> F["Approve or reject result"]
+  F --> G["Record actions in audit trail"]
+  G --> H["Verify requirement traceability"]
 ```
 
 ## Entity Status Flows
@@ -44,10 +37,10 @@ This document defines the proposed lifecycle for the core CSV Evidence Tracker e
 
 An `AUTHOR` creates a requirement with a unique identifier, description, category, and priority.
 
-```text
-User (AUTHOR)
-  → Requirement: DRAFT
-  → AuditEvent: CREATE_REQUIREMENT
+```mermaid
+flowchart LR
+  A["User with AUTHOR role"] --> B["Requirement: DRAFT"]
+  B --> C["AuditEvent: CREATE_REQUIREMENT"]
 ```
 
 A requirement cannot move to `APPROVED` until it has an associated risk assessment.
@@ -56,13 +49,14 @@ A requirement cannot move to `APPROVED` until it has an associated risk assessme
 
 A `REVIEWER` or QA user evaluates potential failure modes, impact, severity, probability, detectability, and risk mitigations.
 
-```text
-Requirement: DRAFT
-  → RiskAssessment: DRAFT
-  → RiskAssessment: ASSESSED
-  → RiskAssessment: MITIGATED
-  → RiskAssessment: ACCEPTED
-  → Requirement: APPROVED
+```mermaid
+stateDiagram-v2
+  [*] --> RequirementDraft
+  RequirementDraft --> RiskDraft
+  RiskDraft --> RiskAssessed
+  RiskAssessed --> RiskMitigated
+  RiskMitigated --> RiskAccepted
+  RiskAccepted --> RequirementApproved
 ```
 
 High or critical residual risks must be mitigated or explicitly accepted before testing can proceed.
@@ -71,13 +65,14 @@ High or critical residual risks must be mitigated or explicitly accepted before 
 
 An `AUTHOR` creates an IQ, OQ, or PQ test case and links it to one or more requirements.
 
-```text
-Requirement: APPROVED
-  → TestCase: DRAFT
-  → TestCase: IN_REVIEW
-  → Approval: PENDING
-  → Approval: APPROVED
-  → TestCase: READY
+```mermaid
+stateDiagram-v2
+  [*] --> RequirementApproved
+  RequirementApproved --> TestCaseDraft
+  TestCaseDraft --> TestCaseInReview
+  TestCaseInReview --> ApprovalPending
+  ApprovalPending --> ApprovalApproved
+  ApprovalApproved --> TestCaseReady
 ```
 
 OQ and PQ test cases should have at least one linked requirement. Each traceability link records coverage type and rationale.
@@ -86,11 +81,14 @@ OQ and PQ test cases should have at least one linked requirement. Each traceabil
 
 A `TESTER` executes an approved version of the test case. The execution stores a controlled snapshot of the test-case version used.
 
-```text
-TestCase: READY
-  → TestExecution: NOT_RUN
-  → TestExecution: IN_PROGRESS
-  → TestExecution: PASSED | FAILED | BLOCKED
+```mermaid
+stateDiagram-v2
+  [*] --> TestCaseReady
+  TestCaseReady --> ExecutionNotRun
+  ExecutionNotRun --> ExecutionInProgress
+  ExecutionInProgress --> Passed
+  ExecutionInProgress --> Failed
+  ExecutionInProgress --> Blocked
 ```
 
 The system logs the executor, timestamp, actual result, and justification for any failure or blocked result.
@@ -99,12 +97,14 @@ The system logs the executor, timestamp, actual result, and justification for an
 
 The tester attaches synthetic evidence, such as screenshots, API responses, sample logs, or generated reports.
 
-```text
-TestExecution: IN_PROGRESS
-  → Evidence: DRAFT
-  → Evidence: ATTACHED
-  → Evidence: REVIEWED
-  → Evidence: ACCEPTED | REJECTED
+```mermaid
+stateDiagram-v2
+  [*] --> ExecutionInProgress
+  ExecutionInProgress --> EvidenceDraft
+  EvidenceDraft --> EvidenceAttached
+  EvidenceAttached --> EvidenceReviewed
+  EvidenceReviewed --> EvidenceAccepted
+  EvidenceReviewed --> EvidenceRejected
 ```
 
 A `PASSED` execution should have accepted evidence or a documented justification. Evidence records include a file reference, evidence type, upload details, and a SHA-256 integrity hash.
@@ -113,25 +113,25 @@ A `PASSED` execution should have accepted evidence or a documented justification
 
 An `APPROVER` reviews the execution and its evidence.
 
-```text
-TestExecution: PASSED
-  + Evidence: ACCEPTED
-  → Approval: PENDING
-  → Approval: APPROVED
-  → TestExecution: APPROVED
+```mermaid
+flowchart LR
+  A["TestExecution: PASSED"] --> C["Approval: PENDING"]
+  B["Evidence: ACCEPTED"] --> C
+  C --> D["Approval: APPROVED"]
+  D --> E["TestExecution: APPROVED"]
 ```
 
 If the reviewer rejects the result, the original execution remains preserved. A new execution should be created for the retest rather than overwriting the historical record.
 
 ### 7. Handle Failed Testing
 
-```text
-TestExecution: FAILED
-  → Demonstration deviation reference
-  → Investigation and corrective action
-  → New TestExecution
-  → New Evidence
-  → New Approval
+```mermaid
+flowchart LR
+  A["TestExecution: FAILED"] --> B["Demonstration deviation reference"]
+  B --> C["Investigation and corrective action"]
+  C --> D["New TestExecution"]
+  D --> E["New Evidence"]
+  E --> F["New Approval"]
 ```
 
 For the current scope, `deviation_reference` and `deviation_summary` can live on `TestExecution`. A dedicated `Deviation` entity can be added later for detailed investigation and CAPA-style workflows.
@@ -140,13 +140,14 @@ For the current scope, `deviation_reference` and `deviation_summary` can live on
 
 A requirement becomes `VERIFIED` only when all required linked tests pass, have accepted evidence, and receive the appropriate approval.
 
-```text
-Requirement: IMPLEMENTED
-  + TestCase(s): READY
-  + TestExecution(s): PASSED
-  + Evidence: ACCEPTED
-  + Approval: APPROVED
-  → Requirement: VERIFIED
+```mermaid
+flowchart LR
+  A["Requirement: IMPLEMENTED"] --> F["Verification gate"]
+  B["Linked TestCases: READY"] --> F
+  C["TestExecutions: PASSED"] --> F
+  D["Evidence: ACCEPTED"] --> F
+  E["Approval: APPROVED"] --> F
+  F --> G["Requirement: VERIFIED"]
 ```
 
 If a critical test fails or evidence is missing, the requirement remains `IMPLEMENTED` or can be flagged as `AT_RISK`.

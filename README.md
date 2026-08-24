@@ -177,20 +177,19 @@ Critical severity is classified as High, while recurrence, overdue state, severi
 
 ## Repository structure
 
-```text
-csv-evidence-tracker/
-├── app/                  # FastAPI application and scoring
-│   └── routers/          # requirements, tests, deviations, audit, RTM
-├── frontend/             # React/Vite reviewer UI + package-lock.json
-├── data/                 # synthetic CSV seed records
-├── sql/                  # SQLite schema
-├── docs/                 # architecture, safety, validation boundary
-├── tests/                # backend automated tests
-├── nginx/                # integrated reverse-proxy configuration
-├── .github/workflows/    # backend/frontend/Compose CI
-├── docker-compose.yml
-├── Dockerfile
-└── CHANGELOG.md
+```mermaid
+flowchart TB
+  R["csv-evidence-tracker"]
+  R --> A["app — FastAPI application and scoring"]
+  A --> AR["routers — requirements, tests, deviations, audit, and RTM"]
+  R --> F["frontend — React and Vite reviewer UI"]
+  R --> D["data — synthetic CSV seed records"]
+  R --> S["sql — SQLite schema"]
+  R --> O["docs — architecture, safety, and validation boundary"]
+  R --> T["tests — backend automated tests"]
+  R --> N["nginx — integrated reverse proxy"]
+  R --> G[".github/workflows — backend, frontend, and Compose CI"]
+  R --> P["Docker and changelog files"]
 ```
 
 ## Validation and regulatory boundary
