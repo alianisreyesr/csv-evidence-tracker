@@ -2,7 +2,8 @@
 
 <div align="center">
 
-![CI](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
 ![API](https://img.shields.io/badge/API-v1.0.0-009688?style=flat&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-Vite-20232A?style=flat&logo=react&logoColor=61DAFB)
@@ -14,13 +15,21 @@
 
 *A portfolio-safe full-stack prototype for traceable validation evidence.*
 
-[Quick Start](#quick-start) · [Release Evidence](#verified-v100-evidence) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
+[Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
 
 </div>
 
 ---
 
 > **Data boundary:** All bundled records are fictional/synthetic. This repository contains no proprietary, employer, patient, personal, or regulated production data. It is **not validated software** and must not be used to make regulated quality decisions.
+
+## Portfolio preview
+
+| Validation dashboard | Requirements traceability matrix |
+|---|---|
+| ![Synthetic validation evidence dashboard](docs/assets/dashboard.png) | ![Synthetic requirements traceability matrix](docs/assets/rtm.png) |
+
+See the [case study](docs/CASE_STUDY.md) for the business problem, users, decisions, evidence, and production boundary.
 
 ## Why this project exists
 

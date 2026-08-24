@@ -46,12 +46,15 @@ export default function Layout({ children }) {
         </nav>
         <div className="px-4 py-4 border-t border-blue-800">
           <p className="text-blue-400 text-xs">21 CFR Part 11 · GAMP 5</p>
-          <p className="text-blue-500 text-xs mt-0.5">ALCOA+ Compliant</p>
+          <p className="text-blue-500 text-xs mt-0.5">ALCOA+ concepts · portfolio only</p>
         </div>
       </aside>
 
       {/* Main */}
       <main className="flex-1 overflow-auto">
+        <div className="border-b border-amber-200 bg-amber-50 px-8 py-2 text-sm text-amber-900">
+          Synthetic evidence only · Not validated software · Not for regulated decisions
+        </div>
         <div className="max-w-7xl mx-auto px-8 py-8">
           {children}
         </div>
