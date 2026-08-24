@@ -6,6 +6,16 @@ updates:
   - package-ecosystem: npm
     directory: "/frontend"
     schedule: { interval: weekly }
+    ignore:
+      # Keep portfolio releases on their verified framework major versions.
+      # Major migrations are planned and tested as coordinated changes instead
+      # of being opened as isolated dependency PRs.
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vite
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule: { interval: monthly }
