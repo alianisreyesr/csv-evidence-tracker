@@ -5,7 +5,7 @@
 [![CI](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
-![API](https://img.shields.io/badge/API-v1.2.0-009688?style=flat&logo=fastapi&logoColor=white)
+![API](https://img.shields.io/badge/API-v1.3.0-009688?style=flat&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-Vite-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![SQLite](https://img.shields.io/badge/SQLite-evidence%20store-003B57?style=flat&logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
@@ -64,6 +64,17 @@ It combines a reviewer-facing UI with JWT authentication, role-based access cont
 | Reproducible builds | Committed npm lockfile, `npm ci`, GitHub Actions coverage gate |
 | Runtime verification | Docker Compose build/start/health + reverse-proxy smoke tests in CI |
 | Governance | Explicit portfolio-safety and validation-boundary documentation |
+
+## CI/CD Pipeline
+
+Every commit to `main` and every pull request triggers a three-stage pipeline:
+
+| Stage | What it checks | Gate |
+|---|---|---|
+| **Backend** | `ruff` lint · `mypy` type-check · `pytest` with ≥70% coverage | ❌ Blocks merge if coverage < 70% |
+| **Frontend** | `npm ci` reproducible install · Vite production build | ❌ Blocks merge if build fails |
+| **Docker** | `docker compose up --build` · `/health` smoke test · Swagger docs accessible | ❌ Blocks merge if stack fails to start |
+| **CodeQL** | Python + JavaScript security scanning (weekly + on push) | Advisory |
 
 ## Authentication & Role-Based Access Control
 
@@ -186,8 +197,15 @@ docker compose down
 # Backend
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 uvicorn app.main:app --reload
+```
+
+Run tests locally:
+
+```bash
+pytest tests/ --cov=app --cov-report=term-missing
 ```
 
 In another terminal:
@@ -204,7 +222,7 @@ npm run dev
 |---|---|---|
 | `POST /auth/login` | Obtain Bearer JWT | — |
 | `GET /auth/me` | Current user identity | Any authenticated |
-| `GET /health` | Runtime health + data-boundary message | — |
+| `GET /health` | Runtime health + version + DB status | — |
 | `GET /summary` | Validation evidence summary | — |
 | `GET /phases` | IQ/OQ/PQ phase state | Any authenticated |
 | `GET /requirements` | Requirements evidence | Any authenticated |
@@ -215,6 +233,7 @@ npm run dev
 | `GET /audit-log` | Reviewable audit trail | Any authenticated |
 | `DELETE /audit-log/{id}` | Remove audit entry | **Admin only** |
 | `GET /rtm` | Requirements traceability matrix | Any authenticated |
+| `GET /rtm/export` | RTM export as CSV | **Admin** |
 
 ## Explainable deviation risk
 
@@ -242,7 +261,7 @@ flowchart TB
   R --> O["docs — architecture, safety, ALCOA+ controls, and validation boundary"]
   R --> T["tests — backend automated tests incl. RBAC suite"]
   R --> N["nginx — integrated reverse proxy"]
-  R --> G[".github/workflows — backend, frontend, and Compose CI"]
+  R --> G[".github/workflows — CI (backend · frontend · Docker) + CodeQL"]
   R --> P["Docker and changelog files"]
 ```
 
@@ -262,11 +281,11 @@ Reference documents:
 
 ## Engineering notes
 
+**v1.3.0** adds the full CI/CD pipeline (backend lint/test/coverage · frontend build · Docker smoke test · CodeQL), IQ/OQ/PQ protocols, and the complete test suite scaffold covering all URS.
+
 **v1.2.0** integrates the JWT auth flow into the React/Vite UI: `LoginPage` with one-click role selector for demos, `AuthContext` for global token state with sessionStorage persistence, `ProtectedRoute` for route-level access control, and a `RoleBadge` component in the sidebar. The full RBAC story is now visible end-to-end through the browser without reading documentation.
 
 **v1.1.0** added JWT-based RBAC with role enforcement at the router level, a 13-test RBAC suite, and full ALCOA+ documentation mapping each principle to its implementation.
-
-Identified follow-on improvements — token refresh endpoint, HttpOnly cookie storage, broader route-level frontend tests — are tracked as engineering opportunities consistent with a continuous-improvement mindset in regulated environments.
 
 ---
 
