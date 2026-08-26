@@ -5,10 +5,12 @@ from contextlib import asynccontextmanager
 from app.database import init_db
 from app.audit_middleware import AuditMiddleware
 from app.routers import requirements, test_cases, executions, deviations, phases, audit, rtm
+from app.routers import auth_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialise database tables on startup
     await init_db()
     yield
 
@@ -24,6 +26,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ---------------------------------------------------------------------------
+# Middleware
+# ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -32,6 +37,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(AuditMiddleware)
+
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
+# Authentication — must be registered before any role-protected router
+app.include_router(auth_router.router, prefix="/auth", tags=["Auth"])
 
 app.include_router(phases.router, prefix="/phases", tags=["Phases"])
 app.include_router(requirements.router, prefix="/requirements", tags=["Requirements"])
@@ -42,8 +53,12 @@ app.include_router(audit.router, prefix="/audit-log", tags=["Audit Log"])
 app.include_router(rtm.router, prefix="/rtm", tags=["Traceability"])
 
 
+# ---------------------------------------------------------------------------
+# Platform endpoints
+# ---------------------------------------------------------------------------
 @app.get("/health", tags=["Health"])
 async def health():
+    """Liveness probe — returns application status and data boundary notice."""
     return {
         "status": "ok",
         "data_boundary": "All data is synthetic and non-confidential. Not for regulated use.",
@@ -51,12 +66,14 @@ async def health():
 
 
 async def _count(db, sql: str) -> int:
+    """Helper: execute a COUNT query and return the integer result."""
     row = await (await db.execute(sql)).fetchone()
     return row[0]
 
 
 @app.get("/summary", tags=["Summary"])
 async def summary(request: Request):
+    """Return aggregate validation progress metrics across all phases."""
     from app.database import get_db
     async with get_db() as db:
         total_reqs = await _count(db, "SELECT COUNT(*) FROM requirements")
