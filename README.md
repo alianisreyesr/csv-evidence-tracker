@@ -5,17 +5,17 @@
 [![CI](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
-![API](https://img.shields.io/badge/API-v1.0.0-009688?style=flat&logo=fastapi&logoColor=white)
+![API](https://img.shields.io/badge/API-v1.1.0-009688?style=flat&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-Vite-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![SQLite](https://img.shields.io/badge/SQLite-evidence%20store-003B57?style=flat&logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat)
 
-**GxP · CSV · ALCOA+ · Requirements Traceability · IQ/OQ/PQ**
+**GxP · CSV · ALCOA+ · RBAC · Requirements Traceability · IQ/OQ/PQ**
 
 *A portfolio-safe full-stack prototype for traceable validation evidence.*
 
-[Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
+[Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md) · [Data Integrity Controls](docs/data-integrity-controls.md)
 
 </div>
 
@@ -46,7 +46,7 @@ flowchart LR
     REQ -.->|Requirements Traceability| AUD
 ```
 
-It combines a reviewer-facing UI with an API, structured SQLite persistence, explainable deviation risk scoring, CI checks, and a containerized deployment path.
+It combines a reviewer-facing UI with an API, structured SQLite persistence, explainable deviation risk scoring, role-based access control, CI checks, and a containerized deployment path.
 
 ## What it demonstrates
 
@@ -55,34 +55,52 @@ It combines a reviewer-facing UI with an API, structured SQLite persistence, exp
 | Requirements traceability | RTM linking requirements to test cases and latest executions |
 | IQ / OQ / PQ workflow | Phase-aware test evidence and execution records |
 | Deviation management | Create, review, resolve, CAPA reference, and explainable risk classification |
-| Audit concepts | Actor-aware, append-oriented audit records for review |
+| **Role-based access control** | **JWT authentication with Analyst / QA Reviewer / Admin roles enforced at the router level (21 CFR Part 11 §11.10(d))** |
+| **ALCOA+ data integrity** | **Each principle mapped to its implementation control — see [data-integrity-controls.md](docs/data-integrity-controls.md)** |
+| Audit concepts | Actor-aware, append-oriented audit records; read-only for Analyst, delete restricted to Admin |
 | API engineering | FastAPI routers, Pydantic schemas, SQLite persistence, health/summary endpoints |
 | Reviewer experience | React/Vite dashboard, RTM, test queue, deviations, phases, and audit views |
 | Reproducible builds | Committed npm lockfile, `npm ci`, GitHub Actions coverage gate |
 | Runtime verification | Docker Compose build/start/health + reverse-proxy smoke tests in CI |
 | Governance | Explicit portfolio-safety and validation-boundary documentation |
 
-## Verified v1.0.0 evidence
+## Authentication & Role-Based Access Control
+
+v1.1.0 introduces JWT-based authentication and three roles aligned with a typical CSV review workflow:
+
+| Role | Permissions |
+|---|---|
+| **Analyst** | Submit executions · Read deviations · Read audit log |
+| **QA Reviewer** | All Analyst permissions + approve / resolve deviations |
+| **Admin** | All QA Reviewer permissions + delete audit log entries |
+
+Role enforcement is applied at the FastAPI dependency layer via `require_role()` in `app/dependencies.py`, which is invoked inside each router using `Depends()`. No endpoint bypass is possible without a valid JWT signed by the server secret.
+
+```bash
+# Obtain a token (synthetic portfolio credentials)
+curl -X POST http://localhost/api/auth/login \
+  -d "username=qa_reviewer01&password=QAReview01!"
+
+# Use the token on a protected endpoint
+curl -H "Authorization: Bearer <token>" \
+  http://localhost/api/deviations
+```
+
+All RBAC controls are covered by the automated test suite in [`tests/test_auth_roles.py`](tests/test_auth_roles.py) (13 test cases, including explicit 401 and 403 negative tests).
+
+## Verified evidence
 
 The release candidate is validated by GitHub Actions rather than README-only claims:
 
-- **27 / 27 backend tests passing**
-- **79.37% backend statement coverage** with a **70% minimum gate**
-- frontend dependencies installed reproducibly with **`npm ci`**
+- **Backend tests passing** with a **70% minimum coverage gate**
+- **13 RBAC-specific tests** covering unauthenticated, forbidden, and authorised scenarios
+- Frontend dependencies installed reproducibly with **`npm ci`**
 - React/Vite production build passing
 - Docker Compose configuration validated and service images built from scratch
 - API, frontend, and reverse proxy reach healthy state
-- reverse-proxy smoke checks pass for:
-  - `/`
-  - `/health`
-  - `/api/summary`
-  - `/api/phases`
-  - `/api/test-cases`
-  - `/api/deviations`
-  - `/api/audit-log`
-  - `/api/rtm`
+- Reverse-proxy smoke checks pass for all public and authenticated routes
 
-The synthetic seed dataset exercised by the Compose smoke run contains **12 requirements, 21 test cases, and 18 recorded executions**. Those are demonstration records, not production validation evidence.
+The synthetic seed dataset contains **12 requirements, 21 test cases, and 18 recorded executions**. Those are demonstration records, not production validation evidence.
 
 ## Architecture
 
@@ -90,17 +108,19 @@ The synthetic seed dataset exercised by the Compose smoke run contains **12 requ
 flowchart TD
     SEED[Synthetic CSV seed data]
     DB[(SQLite evidence store)]
+    AUTH["JWT Auth layer\nAnalyst · QA Reviewer · Admin"]
     API["FastAPI API\nrequirements · RTM\ntests · executions\nphases · deviations\naudit · summary"]
     NGINX["Nginx reverse proxy\n/api/* → FastAPI\n/* → frontend"]
     UI[React/Vite reviewer interface]
 
     SEED --> DB
     DB --> API
+    AUTH -->|require_role()| API
     API -->|/api/*| NGINX
     NGINX --> UI
 ```
 
-See [architecture](docs/architecture.md), [validation approach](docs/validation-approach.md), and [regulatory references](docs/REGULATORY_REFERENCES.md).
+See [architecture](docs/architecture.md), [validation approach](docs/validation-approach.md), [regulatory references](docs/REGULATORY_REFERENCES.md), and [data integrity controls](docs/data-integrity-controls.md).
 
 ## Quick Start
 
@@ -116,17 +136,16 @@ docker compose up --build
 
 Then open:
 
-- application: `http://localhost/`
-- health: `http://localhost/health`
-- API docs: `http://localhost/docs`
+- Application: `http://localhost/`
+- Health check: `http://localhost/health`
+- API docs (Swagger UI): `http://localhost/docs`
+- Auth login: `POST http://localhost/api/auth/login`
 
 Stop the stack with:
 
 ```bash
 docker compose down
 ```
-
-This exact Compose path is exercised by CI with build, health, SPA, and API smoke checks.
 
 ### Local development
 
@@ -146,24 +165,23 @@ npm ci
 npm run dev
 ```
 
-The local Vite workflow is intended for development; the Docker path mirrors the integrated reverse-proxy setup.
-
 ## Core API surface
 
-| Endpoint | Purpose |
-|---|---|
-| `GET /health` | Runtime health + data-boundary message |
-| `GET /summary` | Validation evidence summary |
-| `GET /phases` | IQ/OQ/PQ phase state |
-| `GET /requirements` | Requirements evidence |
-| `GET /test-cases` | Test cases + requirement context |
-| `GET/POST /executions` | Test execution evidence |
-| `GET/POST /deviations` | Deviation workflow + explainable risk |
-| `POST /deviations/{id}/resolve` | Controlled resolution action |
-| `GET /audit-log` | Reviewable audit trail |
-| `GET /rtm` | Requirements traceability matrix |
-
-Mutating evidence endpoints use an `X-Actor` header to demonstrate attributable actions. This is an auditability concept, **not production authentication or electronic-signature validation**.
+| Endpoint | Purpose | Min. Role |
+|---|---|---|
+| `POST /auth/login` | Obtain Bearer JWT | — |
+| `GET /auth/me` | Current user identity | Any authenticated |
+| `GET /health` | Runtime health + data-boundary message | — |
+| `GET /summary` | Validation evidence summary | — |
+| `GET /phases` | IQ/OQ/PQ phase state | Any authenticated |
+| `GET /requirements` | Requirements evidence | Any authenticated |
+| `GET /test-cases` | Test cases + requirement context | Any authenticated |
+| `GET/POST /executions` | Test execution evidence | Any authenticated |
+| `GET/POST /deviations` | Deviation workflow + explainable risk | Any authenticated |
+| `PATCH /deviations/{id}/resolve` | Controlled resolution action | **QA Reviewer / Admin** |
+| `GET /audit-log` | Reviewable audit trail | Any authenticated |
+| `DELETE /audit-log/{id}` | Remove audit entry | **Admin only** |
+| `GET /rtm` | Requirements traceability matrix | Any authenticated |
 
 ## Explainable deviation risk
 
@@ -181,12 +199,12 @@ Critical severity is classified as High, while recurrence, overdue state, severi
 flowchart TB
   R["csv-evidence-tracker"]
   R --> A["app — FastAPI application and scoring"]
-  A --> AR["routers — requirements, tests, deviations, audit, and RTM"]
+  A --> AR["routers — requirements, tests, deviations, audit, RTM, and auth"]
   R --> F["frontend — React and Vite reviewer UI"]
   R --> D["data — synthetic CSV seed records"]
   R --> S["sql — SQLite schema"]
-  R --> O["docs — architecture, safety, and validation boundary"]
-  R --> T["tests — backend automated tests"]
+  R --> O["docs — architecture, safety, ALCOA+ controls, and validation boundary"]
+  R --> T["tests — backend automated tests incl. RBAC suite"]
   R --> N["nginx — integrated reverse proxy"]
   R --> G[".github/workflows — backend, frontend, and Compose CI"]
   R --> P["Docker and changelog files"]
@@ -204,10 +222,11 @@ Reference documents:
 - [Validation Boundary](docs/VALIDATION_BOUNDARY.md)
 - [Regulatory References](docs/REGULATORY_REFERENCES.md)
 - [Review Checklist](docs/REVIEW_CHECKLIST.md)
+- [Data Integrity Controls (ALCOA+)](docs/data-integrity-controls.md)
 
 ## Engineering notes
 
-v1.0.0 prioritizes functional traceability and reproducible runtime evidence. Identified follow-on improvements — broader route-level tests, frontend code splitting, dependency modernization — are tracked openly as engineering opportunities, consistent with a continuous-improvement mindset in regulated environments.
+v1.1.0 adds JWT-based RBAC with role enforcement at the router level, a 13-test RBAC suite, and full ALCOA+ documentation mapping each principle to its implementation. Identified follow-on improvements — frontend auth integration, token refresh, broader route-level tests — are tracked as engineering opportunities consistent with a continuous-improvement mindset in regulated environments.
 
 ---
 
@@ -218,7 +237,7 @@ v1.0.0 prioritizes functional traceability and reproducible runtime evidence. Id
 | **[Quality Deviation Risk Monitor](https://github.com/alianisreyesr/quality-deviation-risk-monitor)** | Deviation prioritization & explainable risk scoring | ✅ Active · 57 tests |
 | **[Data Integrity Case File](https://github.com/alianisreyesr/data-integrity-case-file)** | ALCOA+ investigation, CAPA readiness, local AI triage | ✅ Active |
 | **[GxP Change Control](https://github.com/alianisreyesr/gxp-change-control)** | Controlled change lifecycle & approvals | ✅ Active · 68 tests |
-| **[CSA Assurance Planner](https://github.com/alianisreyesr/csa-assurance-planner)** | Risk-based software assurance planning, FDA CSA alignment | ✅ Active |
+| **[CSA Assurance Planner](https://github.com/alianisreyesreyes/csa-assurance-planner)** | Risk-based software assurance planning, FDA CSA alignment | ✅ Active |
 | **[GxP Batch Data Pipeline](https://github.com/alianisreyesr/gxp-batch-data-pipeline)** | Batch manufacturing pipeline — DuckDB · dbt · quality gates | ✅ Active |
 
 ---
