@@ -5,17 +5,17 @@
 [![CI](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml/badge.svg)](https://github.com/alianisreyesr/csv-evidence-tracker/actions/workflows/codeql.yml)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
-![API](https://img.shields.io/badge/API-v1.1.0-009688?style=flat&logo=fastapi&logoColor=white)
+![API](https://img.shields.io/badge/API-v1.2.0-009688?style=flat&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-Vite-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![SQLite](https://img.shields.io/badge/SQLite-evidence%20store-003B57?style=flat&logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat)
 
-**GxP · CSV · ALCOA+ · RBAC · Requirements Traceability · IQ/OQ/PQ**
+**GxP · CSV · ALCOA+ · RBAC · Full-Stack Auth · Requirements Traceability · IQ/OQ/PQ**
 
 *A portfolio-safe full-stack prototype for traceable validation evidence.*
 
-[Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md) · [Data Integrity Controls](docs/data-integrity-controls.md)
+[Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Demo flow](#demo-flow) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md) · [Data Integrity Controls](docs/data-integrity-controls.md)
 
 </div>
 
@@ -46,7 +46,7 @@ flowchart LR
     REQ -.->|Requirements Traceability| AUD
 ```
 
-It combines a reviewer-facing UI with an API, structured SQLite persistence, explainable deviation risk scoring, role-based access control, CI checks, and a containerized deployment path.
+It combines a reviewer-facing UI with JWT authentication, role-based access control, structured SQLite persistence, explainable deviation risk scoring, CI checks, and a containerized deployment path — all visible end-to-end through the browser.
 
 ## What it demonstrates
 
@@ -56,6 +56,7 @@ It combines a reviewer-facing UI with an API, structured SQLite persistence, exp
 | IQ / OQ / PQ workflow | Phase-aware test evidence and execution records |
 | Deviation management | Create, review, resolve, CAPA reference, and explainable risk classification |
 | **Role-based access control** | **JWT authentication with Analyst / QA Reviewer / Admin roles enforced at the router level (21 CFR Part 11 §11.10(d))** |
+| **Full-stack auth integration** | **React LoginPage · AuthContext · ProtectedRoute · role badge visible in the UI sidebar** |
 | **ALCOA+ data integrity** | **Each principle mapped to its implementation control — see [data-integrity-controls.md](docs/data-integrity-controls.md)** |
 | Audit concepts | Actor-aware, append-oriented audit records; read-only for Analyst, delete restricted to Admin |
 | API engineering | FastAPI routers, Pydantic schemas, SQLite persistence, health/summary endpoints |
@@ -66,7 +67,7 @@ It combines a reviewer-facing UI with an API, structured SQLite persistence, exp
 
 ## Authentication & Role-Based Access Control
 
-v1.1.0 introduces JWT-based authentication and three roles aligned with a typical CSV review workflow:
+v1.1.0 introduced JWT-based authentication and three roles aligned with a typical CSV review workflow. v1.2.0 closes the loop by integrating the auth flow into the React/Vite UI.
 
 | Role | Permissions |
 |---|---|
@@ -74,7 +75,7 @@ v1.1.0 introduces JWT-based authentication and three roles aligned with a typica
 | **QA Reviewer** | All Analyst permissions + approve / resolve deviations |
 | **Admin** | All QA Reviewer permissions + delete audit log entries |
 
-Role enforcement is applied at the FastAPI dependency layer via `require_role()` in `app/dependencies.py`, which is invoked inside each router using `Depends()`. No endpoint bypass is possible without a valid JWT signed by the server secret.
+Role enforcement is applied at the FastAPI dependency layer via `require_role()` in `app/dependencies.py`. No endpoint bypass is possible without a valid JWT signed by the server secret.
 
 ```bash
 # Obtain a token (synthetic portfolio credentials)
@@ -87,6 +88,38 @@ curl -H "Authorization: Bearer <token>" \
 ```
 
 All RBAC controls are covered by the automated test suite in [`tests/test_auth_roles.py`](tests/test_auth_roles.py) (13 test cases, including explicit 401 and 403 negative tests).
+
+## Frontend Authentication
+
+v1.2.0 integrates the JWT auth flow directly into the React/Vite reviewer interface:
+
+| Component | Location | Responsibility |
+|---|---|---|
+| `AuthContext` | `src/context/AuthContext.jsx` | Global token + user state; `login()`, `logout()`, sessionStorage persistence |
+| `LoginPage` | `src/pages/LoginPage.jsx` | Login form with one-click role selector for portfolio demos |
+| `ProtectedRoute` | `src/components/ProtectedRoute.jsx` | Redirects unauthenticated users to `/login`; preserves intended destination |
+| `RoleBadge` | `src/components/RoleBadge.jsx` | Color-coded role pill displayed in the sidebar |
+
+The sidebar footer permanently shows the authenticated user's full name, username, and role badge. A **Sign out** button clears the session and returns to the login screen.
+
+```
+Analyst      → blue pill   🔵
+QA Reviewer  → purple pill 🟣
+Admin        → amber pill  🟡
+```
+
+Session is stored in `sessionStorage` — survives page refresh, cleared when the tab is closed (portfolio-appropriate scope; a production system would use secure HttpOnly cookies and a token-refresh endpoint).
+
+## Demo flow
+
+After `docker compose up --build`, open `http://localhost/`:
+
+1. The app redirects to `/login` (all routes are protected)
+2. Click one of the **role quick-select buttons** to pre-fill credentials — no docs needed
+3. Sign in → land on `/dashboard` with the role badge visible in the sidebar
+4. Navigate to **Deviations** and attempt to resolve one — only QA Reviewer / Admin can
+5. Navigate to **Audit Log** and attempt to delete an entry — only Admin can
+6. Click **Sign out** → session cleared, back to `/login`
 
 ## Verified evidence
 
@@ -111,13 +144,14 @@ flowchart TD
     AUTH["JWT Auth layer\nAnalyst · QA Reviewer · Admin"]
     API["FastAPI API\nrequirements · RTM\ntests · executions\nphases · deviations\naudit · summary"]
     NGINX["Nginx reverse proxy\n/api/* → FastAPI\n/* → frontend"]
-    UI[React/Vite reviewer interface]
+    UI["React/Vite reviewer interface\nLoginPage · ProtectedRoute\nRole badge · Dashboard · RTM\nDeviations · Audit Log"]
 
     SEED --> DB
     DB --> API
     AUTH -->|require_role()| API
     API -->|/api/*| NGINX
     NGINX --> UI
+    UI -->|POST /auth/login| AUTH
 ```
 
 See [architecture](docs/architecture.md), [validation approach](docs/validation-approach.md), [regulatory references](docs/REGULATORY_REFERENCES.md), and [data integrity controls](docs/data-integrity-controls.md).
@@ -136,10 +170,9 @@ docker compose up --build
 
 Then open:
 
-- Application: `http://localhost/`
+- Application + Login: `http://localhost/`
 - Health check: `http://localhost/health`
 - API docs (Swagger UI): `http://localhost/docs`
-- Auth login: `POST http://localhost/api/auth/login`
 
 Stop the stack with:
 
@@ -201,6 +234,9 @@ flowchart TB
   R --> A["app — FastAPI application and scoring"]
   A --> AR["routers — requirements, tests, deviations, audit, RTM, and auth"]
   R --> F["frontend — React and Vite reviewer UI"]
+  F --> FC["context/ — AuthContext"]
+  F --> FP["pages/ — LoginPage + app pages"]
+  F --> FM["components/ — ProtectedRoute · RoleBadge · Layout"]
   R --> D["data — synthetic CSV seed records"]
   R --> S["sql — SQLite schema"]
   R --> O["docs — architecture, safety, ALCOA+ controls, and validation boundary"]
@@ -226,7 +262,11 @@ Reference documents:
 
 ## Engineering notes
 
-v1.1.0 adds JWT-based RBAC with role enforcement at the router level, a 13-test RBAC suite, and full ALCOA+ documentation mapping each principle to its implementation. Identified follow-on improvements — frontend auth integration, token refresh, broader route-level tests — are tracked as engineering opportunities consistent with a continuous-improvement mindset in regulated environments.
+**v1.2.0** integrates the JWT auth flow into the React/Vite UI: `LoginPage` with one-click role selector for demos, `AuthContext` for global token state with sessionStorage persistence, `ProtectedRoute` for route-level access control, and a `RoleBadge` component in the sidebar. The full RBAC story is now visible end-to-end through the browser without reading documentation.
+
+**v1.1.0** added JWT-based RBAC with role enforcement at the router level, a 13-test RBAC suite, and full ALCOA+ documentation mapping each principle to its implementation.
+
+Identified follow-on improvements — token refresh endpoint, HttpOnly cookie storage, broader route-level frontend tests — are tracked as engineering opportunities consistent with a continuous-improvement mindset in regulated environments.
 
 ---
 
