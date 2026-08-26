@@ -2,7 +2,40 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
+from app.auth import UserRole
 
+
+# ---------------------------------------------------------------------------
+# Auth models
+# ---------------------------------------------------------------------------
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3)
+    password: str = Field(..., min_length=6)
+    role: UserRole
+    full_name: Optional[str] = None
+
+
+class UserOut(BaseModel):
+    username: str
+    role: UserRole
+    full_name: Optional[str] = None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: UserRole
+    full_name: str
+
+
+class TokenData(BaseModel):
+    username: str
+    role: UserRole
+
+
+# ---------------------------------------------------------------------------
+# Domain models (unchanged)
+# ---------------------------------------------------------------------------
 class Phase(BaseModel):
     id: int
     name: str
