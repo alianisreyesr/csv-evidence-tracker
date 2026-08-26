@@ -1,115 +1,105 @@
-from fastapi import APIRouter, HTTPException, Header, Query
+"""
+deviations.py
+=============
+REST endpoints for CSV deviation management.
+
+Role enforcement (GAMP 5 / 21 CFR Part 11):
+  - Any authenticated user  : create and read deviations
+  - QA Reviewer or Admin    : resolve / approve a deviation
+"""
+from __future__ import annotations
+
+from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_db
 from app.models import DeviationCreate, DeviationResolve, Deviation
-from app.scoring import classify_deviation_risk
-from typing import List, Optional
+from app.auth import UserRole
+from app.dependencies import require_role, get_current_user
 from datetime import datetime, timezone
-import json
 
 router = APIRouter()
 
 
-def _attach_risk_fields(deviation: dict) -> dict:
-    risk = classify_deviation_risk(
-        severity=deviation["severity"],
-        status=deviation["status"],
-        created_at=deviation["created_at"],
-        assigned_to=deviation.get("assigned_to"),
-    )
-    deviation["risk_score"] = risk["score"]
-    deviation["risk_classification"] = risk["classification"]
-    deviation["contributing_reasons"] = risk["contributing_reasons"]
-    return deviation
-
-
-@router.get("")
-async def list_deviations(
-    status: Optional[str] = Query(None),
-    severity: Optional[str] = Query(None),
-):
-    sql = "SELECT * FROM deviations WHERE 1=1"
-    params = []
-    if status:
-        sql += " AND status=?"
-        params.append(status)
-    if severity:
-        sql += " AND severity=?"
-        params.append(severity)
-    sql += " ORDER BY created_at DESC"
-    async with get_db() as db:
-        rows = await (await db.execute(sql, params)).fetchall()
-
-    return [_attach_risk_fields(dict(row)) for row in rows]
-
-
-@router.get("/{dev_id}")
-async def get_deviation(dev_id: int):
-    async with get_db() as db:
-        row = await (await db.execute("SELECT * FROM deviations WHERE id=?", (dev_id,))).fetchone()
-    if not row:
-        raise HTTPException(status_code=404, detail="Deviation not found")
-    return _attach_risk_fields(dict(row))
-
-
-@router.post("", status_code=201)
+@router.post("", response_model=Deviation, status_code=201)
 async def create_deviation(
     body: DeviationCreate,
-    x_actor: str = Header(...),
+    _user=Depends(get_current_user),   # any authenticated role
 ):
-    now = datetime.now(timezone.utc).isoformat()
+    """Create a new deviation record. Requires authentication."""
     async with get_db() as db:
-        cur = await db.execute(
+        cursor = await db.execute(
             """
             INSERT INTO deviations
                 (execution_id, title, description, severity, risk_classification,
-                 status, assigned_to, created_at)
-            VALUES (?,?,?,?,?,?,?,?)
-            """,
-            (body.execution_id, body.title, body.description, body.severity,
-             body.risk_classification, "Open", body.assigned_to, now),
-        )
-        dev_id = cur.lastrowid
-        await db.execute(
-            "INSERT INTO audit_log (actor, action, table_affected, record_id, new_value, created_at) VALUES (?,?,?,?,?,?)",
-            (x_actor, "CREATE_DEVIATION", "deviations", dev_id, json.dumps(body.model_dump()), now),
-        )
-        await db.commit()
-        row = await (await db.execute("SELECT * FROM deviations WHERE id=?", (dev_id,))).fetchone()
-    return _attach_risk_fields(dict(row))
-
-
-@router.post("/{dev_id}/resolve")
-async def resolve_deviation(
-    dev_id: int,
-    body: DeviationResolve,
-    x_actor: str = Header(...),
-):
-    now = datetime.now(timezone.utc).isoformat()
-    async with get_db() as db:
-        row = await (await db.execute("SELECT * FROM deviations WHERE id=?", (dev_id,))).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Deviation not found")
-        d = dict(row)
-        if d["status"] in ("Resolved", "Accepted with Risk"):
-            raise HTTPException(status_code=400, detail="Deviation is already resolved.")
-
-        await db.execute(
-            "UPDATE deviations SET status=?, capa_ref=?, resolved_at=? WHERE id=?",
-            (body.status, body.capa_ref, now, dev_id),
-        )
-        await db.execute(
-            """
-            INSERT INTO audit_log
-                (actor, action, table_affected, record_id, previous_value, new_value, created_at)
-            VALUES (?,?,?,?,?,?,?)
+                 assigned_to, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'Open', ?)
             """,
             (
-                x_actor, "RESOLVE_DEVIATION", "deviations", dev_id,
-                json.dumps({"status": d["status"]}),
-                json.dumps({"status": body.status, "capa_ref": body.capa_ref,
-                            "resolution_notes": body.resolution_notes}),
-                now,
+                body.execution_id,
+                body.title,
+                body.description,
+                body.severity,
+                body.risk_classification,
+                body.assigned_to,
+                datetime.now(timezone.utc).isoformat(),
             ),
         )
         await db.commit()
-    return {"id": dev_id, "status": body.status, "resolved_at": now, "actor": x_actor}
+        row = await (await db.execute(
+            "SELECT * FROM deviations WHERE id = ?", (cursor.lastrowid,)
+        )).fetchone()
+    return dict(row)
+
+
+@router.get("", response_model=list[Deviation])
+async def list_deviations(_user=Depends(get_current_user)):
+    """Return all deviation records. Requires authentication."""
+    async with get_db() as db:
+        rows = await (await db.execute("SELECT * FROM deviations ORDER BY created_at DESC")).fetchall()
+    return [dict(r) for r in rows]
+
+
+@router.get("/{deviation_id}", response_model=Deviation)
+async def get_deviation(deviation_id: int, _user=Depends(get_current_user)):
+    """Return a single deviation by ID. Requires authentication."""
+    async with get_db() as db:
+        row = await (await db.execute(
+            "SELECT * FROM deviations WHERE id = ?", (deviation_id,)
+        )).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail=f"Deviation {deviation_id} not found.")
+    return dict(row)
+
+
+@router.patch("/{deviation_id}/resolve", response_model=Deviation)
+async def resolve_deviation(
+    deviation_id: int,
+    body: DeviationResolve,
+    _user=Depends(require_role(UserRole.qa_reviewer, UserRole.admin)),  # QA+ only
+):
+    """
+    Resolve or accept-with-risk a deviation.
+    Restricted to QA Reviewer and Admin roles (21 CFR Part 11 §11.10(d)).
+    """
+    async with get_db() as db:
+        row = await (await db.execute(
+            "SELECT * FROM deviations WHERE id = ?", (deviation_id,)
+        )).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Deviation {deviation_id} not found.")
+        if dict(row)["status"] != "Open":
+            raise HTTPException(status_code=409, detail="Deviation is already resolved.")
+
+        resolved_at = datetime.now(timezone.utc).isoformat()
+        await db.execute(
+            """
+            UPDATE deviations
+            SET status = ?, capa_ref = ?, resolved_at = ?
+            WHERE id = ?
+            """,
+            (body.status, body.capa_ref, resolved_at, deviation_id),
+        )
+        await db.commit()
+        updated = await (await db.execute(
+            "SELECT * FROM deviations WHERE id = ?", (deviation_id,)
+        )).fetchone()
+    return dict(updated)
