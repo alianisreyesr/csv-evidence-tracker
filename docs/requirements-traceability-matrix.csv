@@ -1,0 +1,20 @@
+urs_id,requirement_summary,category,severity_s,probability_p,detectability_d,risk_score,risk_level,test_id,test_description,test_type,expected_result,actual_result,pass_fail,evidence_ref
+URS-001,Role-Based Access Control,Security / RBAC,4,3,2,24,HIGH,OQ-001,Analyst cannot resolve deviation,OQ,HTTP 403,HTTP 403,PASS,tests/test_auth_roles.py::test_analyst_cannot_resolve
+URS-001,Role-Based Access Control,Security / RBAC,4,3,2,24,HIGH,OQ-002,Analyst cannot delete audit log,OQ,HTTP 403,HTTP 403,PASS,tests/test_auth_roles.py::test_analyst_cannot_delete_audit_log
+URS-001,Role-Based Access Control,Security / RBAC,4,3,2,24,HIGH,OQ-003,QA Reviewer cannot delete audit log,OQ,HTTP 403,HTTP 403,PASS,tests/test_auth_roles.py::test_qa_reviewer_cannot_delete_audit_log
+URS-001,Role-Based Access Control,Security / RBAC,4,3,2,24,HIGH,OQ-004,Admin can delete audit log,OQ,HTTP 200,HTTP 200,PASS,tests/test_auth_roles.py::test_admin_can_delete_audit_log
+URS-002,Audit Trail — Automatic and Immutable,Data Integrity,5,2,1,10,MEDIUM,OQ-005,Audit log entry created on deviation create,OQ,Entry exists with user_id + timestamp,Entry exists,PASS,tests/test_audit_trail.py::test_audit_created_on_deviation_create
+URS-002,Audit Trail — Automatic and Immutable,Data Integrity,5,2,1,10,MEDIUM,OQ-006,Audit log entry created on deviation resolve,OQ,Entry exists with action=RESOLVE,Entry exists,PASS,tests/test_audit_trail.py::test_audit_on_resolve
+URS-002,Audit Trail — Automatic and Immutable,Data Integrity,5,2,1,10,MEDIUM,OQ-002,Analyst cannot delete audit log (immutability),OQ,HTTP 403,HTTP 403,PASS,tests/test_auth_roles.py::test_analyst_cannot_delete_audit_log
+URS-003,Deviation Record Lifecycle,Process Control,3,3,2,18,HIGH,OQ-007,Deviation transitions open → under_review → resolved,OQ,State updated; audit entry per transition,State updated,PASS,tests/test_deviation_lifecycle.py::test_valid_state_transitions
+URS-003,Deviation Record Lifecycle,Process Control,3,3,2,18,HIGH,OQ-008,Invalid transition open → resolved is rejected,OQ,HTTP 422,HTTP 422,PASS,tests/test_deviation_lifecycle.py::test_invalid_direct_resolve
+URS-004,Data Completeness Validation,Data Integrity,3,4,2,24,HIGH,OQ-009,Missing title returns 422,OQ,HTTP 422 with field error,HTTP 422,PASS,tests/test_validation.py::test_missing_title
+URS-004,Data Completeness Validation,Data Integrity,3,4,2,24,HIGH,OQ-010,Missing severity returns 422,OQ,HTTP 422 with field error,HTTP 422,PASS,tests/test_validation.py::test_missing_severity
+URS-005,Timestamping and Timezone Handling,Data Integrity,4,3,2,24,HIGH,OQ-011,created_at is stored in UTC ISO 8601,OQ,Timestamp matches UTC format,UTC format confirmed,PASS,tests/test_timestamps.py::test_created_at_utc
+URS-006,Secure Authentication with JWT,Security,5,2,1,10,MEDIUM,OQ-012,Unauthenticated request returns 401,OQ,HTTP 401,HTTP 401,PASS,tests/test_auth_roles.py::test_no_token_returns_401
+URS-006,Secure Authentication with JWT,Security,5,2,1,10,MEDIUM,OQ-013,Expired token returns 401,OQ,HTTP 401,HTTP 401,PASS,tests/test_auth_roles.py::test_expired_token_returns_401
+URS-007,RTM Export,Traceability,3,2,2,12,MEDIUM,OQ-014,GET /export/rtm returns valid CSV,OQ,HTTP 200 + CSV content-type,HTTP 200,PASS,tests/test_export.py::test_rtm_csv_export
+URS-008,Risk-Based Severity Classification,Process Control,4,3,2,24,HIGH,OQ-015,Critical deviation without root_cause returns 422,OQ,HTTP 422,HTTP 422,PASS,tests/test_validation.py::test_critical_requires_root_cause
+URS-009,Data Retention and Non-Repudiation,Data Integrity,5,2,1,10,MEDIUM,OQ-016,Admin delete creates audit log entry,OQ,Audit entry with action=DELETE,Entry exists,PASS,tests/test_audit_trail.py::test_admin_delete_logged
+URS-009,Data Retention and Non-Repudiation,Data Integrity,5,2,1,10,MEDIUM,OQ-002,Non-admin cannot hard delete,OQ,HTTP 403,HTTP 403,PASS,tests/test_auth_roles.py::test_analyst_cannot_delete_audit_log
+URS-010,System Health and Version Visibility,Operations,2,2,1,4,LOW,IQ-001,GET /health returns 200 with version and timestamp,IQ,HTTP 200 + JSON with version,HTTP 200,PASS,tests/test_health.py::test_health_endpoint
