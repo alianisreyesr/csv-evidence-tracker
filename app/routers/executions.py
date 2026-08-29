@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.database import get_db
 from app.models import ExecutionCreate, Execution
+from app.auth import TokenData
+from app.dependencies import get_current_user
 from typing import List, Optional
 from datetime import datetime, timezone
 import json
@@ -30,8 +32,17 @@ async def list_executions(
 @router.post("", response_model=Execution, status_code=201)
 async def record_execution(
     body: ExecutionCreate,
-    x_actor: str = Header(..., description="Identifier of the person recording the execution"),
+    user: TokenData = Depends(get_current_user),
 ):
+    """Record a test execution result. Requires authentication.
+
+    The audit-log actor is the verified JWT identity (``user.username``),
+    not a client-supplied header — a caller cannot attribute an execution
+    to someone else by setting a header, only by knowing that person's
+    credentials. ``body.executed_by`` remains a separate, editable domain
+    field (e.g. "executed on behalf of") distinct from the authenticated
+    caller recorded in the audit trail.
+    """
     now = datetime.now(timezone.utc).isoformat()
     async with get_db() as db:
         tc = await (await db.execute("SELECT id FROM test_cases WHERE id=?", (body.test_case_id,))).fetchone()
@@ -48,7 +59,7 @@ async def record_execution(
                  actual_result, evidence_ref, notes, created_at)
             VALUES (?,?,?,?,?,?,?,?,?)
             """,
-            (body.test_case_id, body.phase_id, x_actor, now,
+            (body.test_case_id, body.phase_id, body.executed_by, now,
              body.result, body.actual_result, body.evidence_ref, body.notes, now),
         )
         exec_id = cur.lastrowid
@@ -58,7 +69,7 @@ async def record_execution(
             INSERT INTO audit_log (actor, action, table_affected, record_id, new_value, created_at)
             VALUES (?,?,?,?,?,?)
             """,
-            (x_actor, "EXECUTE_TEST", "test_executions", exec_id,
+            (user.username, "EXECUTE_TEST", "test_executions", exec_id,
              json.dumps({"test_case_id": body.test_case_id, "result": body.result}), now),
         )
         await db.commit()

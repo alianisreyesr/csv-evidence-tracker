@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchDeviations, createDeviation, resolveDeviation } from '../api/client'
 import StatusBadge from '../components/StatusBadge'
+import { useAuth } from '../context/AuthContext'
 
 const SEVERITIES = ['Critical', 'Major', 'Minor']
 
 export default function Deviations() {
   const qc = useQueryClient()
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [resolving, setResolving] = useState(null)
-  const [resolution, setResolution] = useState({ capa_ref: '', resolution_notes: '', actor: '' })
+  const [resolution, setResolution] = useState({ capa_ref: '', resolution_notes: '' })
   const [form, setForm] = useState({
-    title: '', description: '', severity: 'Major', assigned_to: '', actor: ''
+    title: '', description: '', severity: 'Major', assigned_to: ''
   })
 
   const { data = [], isLoading } = useQuery({ queryKey: ['deviations'], queryFn: fetchDeviations })
@@ -22,7 +24,7 @@ export default function Deviations() {
       qc.invalidateQueries({ queryKey: ['deviations'] })
       qc.invalidateQueries({ queryKey: ['summary'] })
       setShowForm(false)
-      setForm({ title: '', description: '', severity: 'Major', assigned_to: '', actor: '' })
+      setForm({ title: '', description: '', severity: 'Major', assigned_to: '' })
     }
   })
 
@@ -32,7 +34,7 @@ export default function Deviations() {
       qc.invalidateQueries({ queryKey: ['deviations'] })
       qc.invalidateQueries({ queryKey: ['summary'] })
       setResolving(null)
-      setResolution({ capa_ref: '', resolution_notes: '', actor: '' })
+      setResolution({ capa_ref: '', resolution_notes: '' })
     }
   })
 
@@ -108,10 +110,9 @@ export default function Deviations() {
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Assigned To</label>
                 <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="e.g. A. Reyes" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Actor *</label>
-                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Audit identity" value={form.actor} onChange={e => setForm(f => ({ ...f, actor: e.target.value }))} />
-              </div>
+              <p className="text-xs text-gray-500">
+                Recorded as <span className="font-semibold">{user?.username}</span> (audit trail identity from your signed-in session).
+              </p>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Severity *</label>
                 <div className="flex gap-2">
@@ -124,7 +125,7 @@ export default function Deviations() {
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button className="btn-primary flex-1" disabled={!form.title || !form.actor || createMut.isPending} onClick={() => createMut.mutate(form)}>
+              <button className="btn-primary flex-1" disabled={!form.title || createMut.isPending} onClick={() => createMut.mutate(form)}>
                 {createMut.isPending ? 'Creating…' : 'Create Deviation'}
               </button>
               <button className="btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
@@ -140,11 +141,13 @@ export default function Deviations() {
             <p className="text-sm text-gray-500 mb-4 font-mono">#{resolving.id} · {resolving.title}</p>
             <div className="space-y-3">
               <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="CAPA reference" value={resolution.capa_ref} onChange={e => setResolution(r => ({ ...r, capa_ref: e.target.value }))} />
-              <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Actor *" value={resolution.actor} onChange={e => setResolution(r => ({ ...r, actor: e.target.value }))} />
+              <p className="text-xs text-gray-500">
+                Recorded as <span className="font-semibold">{user?.username}</span> (audit trail identity from your signed-in session).
+              </p>
               <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} placeholder="Resolution notes (minimum 10 characters) *" value={resolution.resolution_notes} onChange={e => setResolution(r => ({ ...r, resolution_notes: e.target.value }))} />
             </div>
             <div className="flex gap-3 mt-5">
-              <button className="btn-primary flex-1" disabled={!resolution.actor || resolution.resolution_notes.length < 10 || resolveMut.isPending} onClick={() => resolveMut.mutate({ id: resolving.id, body: { ...resolution, status: 'Resolved' } })}>
+              <button className="btn-primary flex-1" disabled={resolution.resolution_notes.length < 10 || resolveMut.isPending} onClick={() => resolveMut.mutate({ id: resolving.id, body: { ...resolution, actor: user?.username, status: 'Resolved' } })}>
                 {resolveMut.isPending ? 'Resolving…' : 'Mark Resolved'}
               </button>
               <button className="btn-secondary" onClick={() => setResolving(null)}>Cancel</button>

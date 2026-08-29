@@ -120,11 +120,14 @@ class Deviation(BaseModel):
     description: Optional[str] = None
     severity: str
     risk_classification: Optional[str] = None
+    risk_score: Optional[int] = None
+    contributing_reasons: Optional[list[str]] = None
     status: str
     capa_ref: Optional[str] = None
     assigned_to: Optional[str] = None
     created_at: str
     resolved_at: Optional[str] = None
+    resolution_notes: Optional[str] = None
 
 
 class AuditEntry(BaseModel):

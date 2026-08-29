@@ -7,9 +7,13 @@ from fastapi import Depends
 from pydantic import BaseModel
 
 from app.auth import (
+    DUMMY_PASSWORD_HASH,
     SYNTHETIC_USERS,
     UserRole,
     create_access_token,
+    decode_token,
+    oauth2_scheme,
+    verify_password,
 )
 
 router = APIRouter()
@@ -34,7 +38,10 @@ class Token(BaseModel):
 )
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     user = SYNTHETIC_USERS.get(form_data.username)
-    if not user or user["password"] != form_data.password:
+    # Verify against the placeholder hash even on an unknown username so a
+    # bad username and a bad password take the same amount of time.
+    password_hash = user["password_hash"] if user else DUMMY_PASSWORD_HASH
+    if not user or not verify_password(form_data.password, password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -50,8 +57,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 
 
 @router.get("/me", summary="Return current authenticated user info")
-async def me(token: str = Depends(__import__("app.auth", fromlist=["oauth2_scheme"]).oauth2_scheme)):
-    from app.auth import decode_token
+async def me(token: str = Depends(oauth2_scheme)):
     data = decode_token(token)
     user = SYNTHETIC_USERS.get(data.username, {})
     return {
