@@ -79,12 +79,15 @@ CREATE TABLE IF NOT EXISTS deviations (
     severity            TEXT NOT NULL DEFAULT 'Minor'
                             CHECK(severity IN ('Critical','Major','Minor')),
     risk_classification TEXT,
+    risk_score          INTEGER,               -- Explainable rule-based score (see app/scoring.py)
+    contributing_reasons TEXT,                 -- JSON array of contributing reasons for risk_score
     status              TEXT NOT NULL DEFAULT 'Open'
                             CHECK(status IN ('Open','Under Investigation','Resolved','Accepted with Risk')),
     capa_ref            TEXT,                  -- Reference to corrective action
     assigned_to         TEXT,
     created_at          TEXT NOT NULL DEFAULT (datetime('now','utc')),
-    resolved_at         TEXT
+    resolved_at         TEXT,
+    resolution_notes    TEXT                   -- Required on resolve; see DeviationResolve
 );
 
 -- ─────────────────────────────────────────────

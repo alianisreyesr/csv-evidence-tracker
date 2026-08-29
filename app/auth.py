@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional
 
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -39,12 +40,46 @@ class TokenData(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Password hashing
+# ---------------------------------------------------------------------------
+def hash_password(plain_password: str) -> str:
+    return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(plain_password: str, password_hash: str) -> bool:
+    """Timing-safe (bcrypt's own constant-time compare) verification."""
+    return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
+
+
+# A hash of a value nobody can type, used as the comparison target for an
+# unknown username so login() always does one bcrypt verify regardless of
+# whether the username exists — avoids leaking valid usernames via timing.
+DUMMY_PASSWORD_HASH = hash_password("no-such-user-placeholder")
+
+
+# ---------------------------------------------------------------------------
 # Synthetic user store (portfolio — no real credentials)
 # ---------------------------------------------------------------------------
+# Passwords are bcrypt-hashed even though these are synthetic/demo accounts:
+# storing them in plaintext with a non-constant-time `==` compare (the prior
+# implementation) is exactly the pattern a careful reviewer would flag, so
+# the portfolio piece demonstrates the real practice instead of skipping it.
 SYNTHETIC_USERS: dict[str, dict] = {
-    "analyst01": {"password": "Analyst01!", "role": UserRole.analyst, "full_name": "Ana Analyst"},
-    "qa_reviewer01": {"password": "QAReview01!", "role": UserRole.qa_reviewer, "full_name": "Quinn Reviewer"},
-    "admin01": {"password": "Admin01!", "role": UserRole.admin, "full_name": "Alex Admin"},
+    "analyst01": {
+        "password_hash": hash_password("Analyst01!"),
+        "role": UserRole.analyst,
+        "full_name": "Ana Analyst",
+    },
+    "qa_reviewer01": {
+        "password_hash": hash_password("QAReview01!"),
+        "role": UserRole.qa_reviewer,
+        "full_name": "Quinn Reviewer",
+    },
+    "admin01": {
+        "password_hash": hash_password("Admin01!"),
+        "role": UserRole.admin,
+        "full_name": "Alex Admin",
+    },
 }
 
 

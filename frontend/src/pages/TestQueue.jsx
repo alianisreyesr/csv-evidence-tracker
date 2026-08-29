@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchTestCases, fetchExecutions, fetchPhases, createExecution } from '../api/client'
 import StatusBadge from '../components/StatusBadge'
+import { useAuth } from '../context/AuthContext'
 
 const RESULTS = ['PASS', 'FAIL', 'BLOCKED']
 
 export default function TestQueue() {
   const qc = useQueryClient()
+  const { user } = useAuth()
   const [filter, setFilter] = useState('')
   const [executing, setExecuting] = useState(null)
-  const [form, setForm] = useState({ result: 'PASS', executed_by: '', actual_result: '', evidence_ref: '', notes: '' })
+  const [form, setForm] = useState({ result: 'PASS', actual_result: '', evidence_ref: '', notes: '' })
 
   const { data: tests = [] } = useQuery({ queryKey: ['test-cases'], queryFn: fetchTestCases })
   const { data: execs = [] } = useQuery({ queryKey: ['executions'], queryFn: fetchExecutions })
@@ -27,7 +29,7 @@ export default function TestQueue() {
       qc.invalidateQueries({ queryKey: ['summary'] })
       qc.invalidateQueries({ queryKey: ['rtm'] })
       setExecuting(null)
-      setForm({ result: 'PASS', executed_by: '', actual_result: '', evidence_ref: '', notes: '' })
+      setForm({ result: 'PASS', actual_result: '', evidence_ref: '', notes: '' })
     }
   })
 
@@ -100,10 +102,9 @@ export default function TestQueue() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Executed By *</label>
-                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.executed_by} onChange={e => setForm(f => ({ ...f, executed_by: e.target.value }))} />
-              </div>
+              <p className="text-xs text-gray-500">
+                Executed by <span className="font-semibold">{user?.username}</span> (audit trail identity from your signed-in session).
+              </p>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Actual Result</label>
                 <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={2} value={form.actual_result} onChange={e => setForm(f => ({ ...f, actual_result: e.target.value }))} />
@@ -119,7 +120,7 @@ export default function TestQueue() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button className="btn-primary flex-1" disabled={!form.executed_by || mutation.isPending} onClick={() => mutation.mutate({ test_case_id: executing.id, phase_id: phaseIdFor(executing), ...form })}>
+              <button className="btn-primary flex-1" disabled={mutation.isPending} onClick={() => mutation.mutate({ test_case_id: executing.id, phase_id: phaseIdFor(executing), executed_by: user?.username, ...form })}>
                 {mutation.isPending ? 'Saving…' : 'Record Result'}
               </button>
               <button className="btn-secondary" onClick={() => setExecuting(null)}>Cancel</button>
