@@ -107,8 +107,8 @@ claimed-passing control and what the code actually did.
 | OI-001 | PQ video demo (2 min screen recording) | MEDIUM | Open |
 | OI-002 | Mermaid architecture diagram in README | LOW | Open — verify against current README |
 | OI-003 | GitHub Actions CI/CD workflow | HIGH | ✅ Done — `.github/workflows/ci.yml`, `codeql.yml` exist and gate on lint/type-check/test/coverage/frontend build/Docker smoke test |
-| OI-004 | Requirement and test-case authoring via the API (`POST /requirements`, `POST /test-cases`) does not exist; requirements/test cases are currently read-only, seeded from CSV | MEDIUM | Open — was previously described as implemented (v1.0 protocol); corrected here rather than left as a false claim |
-| OI-005 | Formal risk-assessment endpoint (`POST /requirements/{id}/risk`, S×P×D scoring) referenced in v1.0 of the PQ protocol does not exist | MEDIUM | Open — deviation risk scoring (`app/scoring.py`) is implemented and tested; requirement-level risk assessment is not |
+| OI-004 | Requirement and test-case authoring via the API (`POST /requirements`, `POST /test-cases`) does not exist; requirements/test cases are currently read-only, seeded from CSV | MEDIUM | ✅ Done — `POST /requirements` (Analyst+) and `POST /test-cases` (Analyst+) implemented, audited via `AuditMiddleware`, covered by `tests/test_requirements.py` |
+| OI-005 | Formal risk-assessment endpoint (`POST /requirements/{id}/risk`, S×P×D scoring) referenced in v1.0 of the PQ protocol does not exist | MEDIUM | ✅ Done — `POST /requirements/{id}/risk` (QA Reviewer+) implemented in `app/scoring.py`/`app/routers/requirements.py`, persisted on `requirements`, surfaced in `GET /requirements` and `GET /rtm`; covered by `tests/test_scoring.py` and `tests/test_requirements.py`. Not re-verified via a live PQ re-run — see `docs/pq-test-protocol.md` post-2.0 note. |
 
 ---
 

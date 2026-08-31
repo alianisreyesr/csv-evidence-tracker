@@ -55,3 +55,28 @@ def classify_deviation_risk(
         "classification": classification,
         "contributing_reasons": reasons,
     }
+
+
+def score_requirement_risk(severity: int, probability: int, detectability: int) -> dict:
+    """
+    Explainable S x P x D risk assessment for requirements (ICH Q9-style
+    FMEA scoring), mirroring the transparency of classify_deviation_risk()
+    above: a simple, auditable formula rather than a black-box model.
+
+    Each factor is rated 1-5 (validated by the RequirementRisk pydantic
+    model); the product ranges 1-125. Tier boundaries:
+        1-8    -> Low
+        9-27   -> Medium
+        28-64  -> High
+        65-125 -> Critical
+    """
+    score = severity * probability * detectability
+    if score >= 65:
+        level = "Critical"
+    elif score >= 28:
+        level = "High"
+    elif score >= 9:
+        level = "Medium"
+    else:
+        level = "Low"
+    return {"score": score, "level": level}

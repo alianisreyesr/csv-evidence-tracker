@@ -1,8 +1,68 @@
-from fastapi import APIRouter, HTTPException, Query
-from app.database import get_db
+import sqlite3
+from datetime import datetime, timezone
 from typing import Optional
 
+from fastapi import APIRouter, HTTPException, Query, Depends
+
+from app.database import get_db
+from app.models import TestCaseCreate
+from app.auth import UserRole
+from app.dependencies import require_role
+
 router = APIRouter()
+
+
+@router.post("", status_code=201)
+async def create_test_case(
+    body: TestCaseCreate,
+    _user=Depends(require_role(UserRole.analyst, UserRole.qa_reviewer, UserRole.admin)),
+):
+    """Author a new test case linked to a requirement. Requires Analyst role or above.
+
+    `code` must be unique (e.g. TC-OQ-011); `requirement_id` must reference
+    an existing requirement — both violations return a 4xx rather than a
+    raw database error, matching the pattern in requirements.py.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    async with get_db() as db:
+        req = await (await db.execute(
+            "SELECT id FROM requirements WHERE id=?", (body.requirement_id,)
+        )).fetchone()
+        if not req:
+            raise HTTPException(
+                status_code=422, detail=f"Requirement {body.requirement_id} does not exist."
+            )
+        try:
+            cursor = await db.execute(
+                """
+                INSERT INTO test_cases
+                    (requirement_id, code, title, description, test_type, expected_result, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    body.requirement_id,
+                    body.code,
+                    body.title,
+                    body.description,
+                    body.test_type,
+                    body.expected_result,
+                    now,
+                ),
+            )
+        except sqlite3.IntegrityError:
+            raise HTTPException(status_code=409, detail=f"Test case code '{body.code}' already exists.")
+        await db.commit()
+        row = await (await db.execute(
+            """
+            SELECT tc.*, r.code AS requirement_code, r.title AS requirement_title,
+                   r.phase AS requirement_phase
+            FROM test_cases tc
+            JOIN requirements r ON r.id = tc.requirement_id
+            WHERE tc.id = ?
+            """,
+            (cursor.lastrowid,),
+        )).fetchone()
+    return dict(row)
 
 
 @router.get("")

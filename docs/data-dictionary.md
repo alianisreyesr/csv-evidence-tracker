@@ -39,8 +39,26 @@
 | `owner_id` | Foreign key | Yes | References `User.id`. |
 | `created_at` | Datetime | Yes | Record creation timestamp. |
 | `updated_at` | Datetime | Yes | Last update timestamp. |
+| `risk_severity` | Integer | No | Implemented — S×P×D severity rating, 1–5. Null until assessed via `POST /requirements/{id}/risk`. |
+| `risk_probability` | Integer | No | Implemented — S×P×D probability rating, 1–5. |
+| `risk_detectability` | Integer | No | Implemented — S×P×D detectability rating, 1–5. |
+| `risk_score` | Integer | No | Implemented — `severity × probability × detectability`, server-computed. |
+| `risk_level` | Enum | No | Implemented — `Low`, `Medium`, `High`, or `Critical`. |
+| `risk_assessed_by` | String | No | Implemented — actor who submitted the assessment. |
+| `risk_assessed_at` | Datetime | No | Implemented — UTC timestamp of the assessment. |
 
-## Risk Assessment
+> **Implementation note:** the fields above are live on the `requirements`
+> table (`sql/schema.sql`) and are set by `POST /requirements/{id}/risk`
+> (see `app/routers/requirements.py`, `app/scoring.py`). They are the
+> implemented subset of the broader **Risk Assessment** entity described
+> below — a single embedded S×P×D score per requirement, with no separate
+> `risk_key`, mitigation, or residual-risk tracking (yet). The full
+> standalone entity below remains a proposed extension for a future
+> iteration, and its tier boundaries below are illustrative only — the
+> shipped thresholds are 1–8 Low, 9–27 Medium, 28–64 High, 65–125 Critical
+> (see `app/scoring.py:score_requirement_risk`).
+
+## Risk Assessment (proposed extension — not yet implemented as a standalone entity)
 
 | Field | Type | Required | Description |
 |---|---|---:|---|

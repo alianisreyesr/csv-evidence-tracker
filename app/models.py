@@ -45,6 +45,18 @@ class Phase(BaseModel):
     created_at: str
 
 
+class RequirementCreate(BaseModel):
+    code: str = Field(..., min_length=3)
+    title: str = Field(..., min_length=5)
+    description: Optional[str] = None
+    category: Optional[str] = Field(
+        None, pattern="^(Functional|Security|Performance|Regulatory)$"
+    )
+    priority: str = Field(default="Medium", pattern="^(Critical|High|Medium|Low)$")
+    phase: str = Field(default="OQ", pattern="^(IQ|OQ|PQ)$")
+    status: str = Field(default="Draft", pattern="^(Draft|Approved|Superseded)$")
+
+
 class Requirement(BaseModel):
     id: int
     code: str
@@ -55,6 +67,27 @@ class Requirement(BaseModel):
     phase: str
     status: str
     created_at: str
+    risk_severity: Optional[int] = None
+    risk_probability: Optional[int] = None
+    risk_detectability: Optional[int] = None
+    risk_score: Optional[int] = None
+    risk_level: Optional[str] = None
+    risk_assessed_by: Optional[str] = None
+    risk_assessed_at: Optional[str] = None
+
+
+class RequirementRisk(BaseModel):
+    """S x P x D formal risk assessment input for a requirement.
+
+    Each factor is rated 1-5 (ICH Q9-style FMEA scale); risk_score and
+    risk_level are always computed server-side via
+    app.scoring.score_requirement_risk() — never trusted from the client —
+    for the same reason deviation risk_classification is server-computed.
+    """
+    severity: int = Field(..., ge=1, le=5)
+    probability: int = Field(..., ge=1, le=5)
+    detectability: int = Field(..., ge=1, le=5)
+    assessed_by: str = Field(..., min_length=2)
 
 
 class TestCase(BaseModel):
@@ -66,6 +99,17 @@ class TestCase(BaseModel):
     test_type: Optional[str] = None
     expected_result: str
     created_at: str
+
+
+class TestCaseCreate(BaseModel):
+    requirement_id: int
+    code: str = Field(..., min_length=3)
+    title: str = Field(..., min_length=5)
+    description: Optional[str] = None
+    test_type: Optional[str] = Field(
+        None, pattern="^(Functional|Boundary|Negative|Regression)$"
+    )
+    expected_result: str = Field(..., min_length=3)
 
 
 class TestCaseWithRequirement(TestCase):
