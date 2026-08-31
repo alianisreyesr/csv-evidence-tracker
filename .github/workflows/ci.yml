@@ -117,14 +117,14 @@ jobs:
           RESP=$(curl -s http://localhost/health)
           echo "$RESP"
           echo "$RESP" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-assert data['status'] == 'ok', f'Expected ok, got {data[\"status\"]}'
-assert 'version' in data, 'Missing version'
-assert 'timestamp' in data, 'Missing timestamp'
-assert 'db_status' in data, 'Missing db_status'
-print('All /health fields verified')
-"
+          import sys, json
+          data = json.load(sys.stdin)
+          assert data['status'] == 'ok', f'Expected ok, got {data[\"status\"]}'
+          assert 'version' in data, 'Missing version'
+          assert 'timestamp' in data, 'Missing timestamp'
+          assert 'db_status' in data, 'Missing db_status'
+          print('All /health fields verified')
+          "
 
       - name: Smoke test — Swagger docs accessible
         run: curl -f http://localhost/docs > /dev/null
