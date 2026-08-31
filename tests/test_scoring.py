@@ -1,4 +1,3 @@
-import pytest
 from app.scoring import classify_deviation_risk
 from datetime import datetime, timezone, timedelta
 

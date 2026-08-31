@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 import aiosqlite
@@ -55,8 +56,8 @@ class AuditMiddleware(BaseHTTPMiddleware):
                     await db.execute(
                         """
                         INSERT INTO audit_log
-                            (actor, action, ip_address, user_agent, status_code, latency_ms)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                            (actor, action, ip_address, user_agent, status_code, latency_ms, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             actor,
@@ -65,6 +66,12 @@ class AuditMiddleware(BaseHTTPMiddleware):
                             request.headers.get("user-agent"),
                             response.status_code,
                             latency_ms,
+                            # Explicit, timezone-aware UTC timestamp — the column's
+                            # DEFAULT (datetime('now','utc')) produces a naive
+                            # string with no offset, which breaks the ALCOA+
+                            # Contemporaneous guarantee every other insert in this
+                            # codebase (deviations, test_executions) already keeps.
+                            datetime.now(timezone.utc).isoformat(),
                         ),
                     )
                     await db.commit()

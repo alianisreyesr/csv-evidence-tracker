@@ -47,7 +47,7 @@ async def test_health_version_matches():
 @pytest.mark.asyncio
 async def test_health_timestamp_utc():
     """IQ-001d: /health timestamp is ISO 8601 UTC per URS-005 / URS-010."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health")
     ts = response.json()["timestamp"]

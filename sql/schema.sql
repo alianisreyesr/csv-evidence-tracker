@@ -87,7 +87,8 @@ CREATE TABLE IF NOT EXISTS deviations (
     assigned_to         TEXT,
     created_at          TEXT NOT NULL DEFAULT (datetime('now','utc')),
     resolved_at         TEXT,
-    resolution_notes    TEXT                   -- Required on resolve; see DeviationResolve
+    resolution_notes    TEXT,                  -- Required on resolve; see DeviationResolve
+    root_cause          TEXT                   -- Required to resolve a Critical deviation (OQ-015 / URS-008)
 );
 
 -- ─────────────────────────────────────────────
