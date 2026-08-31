@@ -2,7 +2,6 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from pathlib import Path
-import shutil
 
 # Use a temp DB for tests
 TEST_DB = Path("data/test_tracker.db")

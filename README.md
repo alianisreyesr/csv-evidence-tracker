@@ -229,7 +229,8 @@ npm run dev
 | `GET /test-cases` | Test cases + requirement context | Any authenticated |
 | `GET/POST /executions` | Test execution evidence | Any authenticated |
 | `GET/POST /deviations` | Deviation workflow + explainable risk | Any authenticated |
-| `PATCH /deviations/{id}/resolve` | Controlled resolution action | **QA Reviewer / Admin** |
+| `PATCH /deviations/{id}/status` | Move to Under Investigation (optional pre-resolve step) | **QA Reviewer / Admin** |
+| `PATCH /deviations/{id}/resolve` | Controlled resolution; Critical severity requires `root_cause` | **QA Reviewer / Admin** |
 | `GET /audit-log` | Reviewable audit trail | Any authenticated |
 | `DELETE /audit-log/{id}` | Remove audit entry | **Admin only** |
 | `GET /rtm` | Requirements traceability matrix | Any authenticated |

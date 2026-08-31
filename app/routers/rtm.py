@@ -1,5 +1,10 @@
+import csv
+import io
+
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from app.database import get_db
+from app.dependencies import Admin_Only
 
 router = APIRouter()
 
@@ -37,3 +42,51 @@ async def get_rtm():
             r["coverage_pct"] = round(len(executed) / len(test_list) * 100, 1) if test_list else 0
             result.append(r)
     return result
+
+
+@router.get("/export")
+async def export_rtm_csv(_user=Admin_Only):
+    """
+    URS-007 — Export the Requirements Traceability Matrix as CSV.
+
+    One row per (requirement, test case) pair, with the latest execution
+    result flattened in — the same evidence GET /rtm returns as nested
+    JSON, in the tabular form an auditor expects to attach to a validation
+    package. Requirements with no test cases yet still get one row so
+    coverage gaps are visible in the export, not silently dropped.
+
+    Restricted to Admin (21 CFR Part 11 §11.10(d)) since an RTM export is
+    itself a piece of validation evidence.
+    """
+    data = await get_rtm()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        "requirement_code", "requirement_title", "priority", "phase", "requirement_status",
+        "test_case_code", "test_case_title", "expected_result",
+        "latest_result", "executed_by", "executed_at",
+    ])
+    for req in data:
+        test_cases = req["test_cases"]
+        if not test_cases:
+            writer.writerow([
+                req["code"], req["title"], req["priority"], req["phase"], req["status"],
+                "", "", "", "NOT_RUN", "", "",
+            ])
+            continue
+        for tc in test_cases:
+            latest = tc["latest_execution"]
+            writer.writerow([
+                req["code"], req["title"], req["priority"], req["phase"], req["status"],
+                tc["code"], tc["title"], tc["expected_result"],
+                latest["result"] if latest else "NOT_RUN",
+                latest["executed_by"] if latest else "",
+                latest["executed_at"] if latest else "",
+            ])
+
+    return StreamingResponse(
+        iter([buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=rtm_export.csv"},
+    )

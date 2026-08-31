@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
 
 from app.auth import UserRole
 
@@ -109,8 +108,20 @@ class DeviationCreate(BaseModel):
 class DeviationResolve(BaseModel):
     actor: str = Field(..., min_length=2)
     resolution_notes: str = Field(..., min_length=10)
+    root_cause: Optional[str] = None
     capa_ref: Optional[str] = None
     status: str = Field(default="Resolved", pattern="^(Resolved|Accepted with Risk)$")
+
+
+class DeviationStatusUpdate(BaseModel):
+    """Move a deviation from Open into investigation before resolving it.
+
+    Only target is 'Under Investigation' for now — this is intentionally a
+    single-transition endpoint, not a general status setter (resolving is
+    handled separately by PATCH /deviations/{id}/resolve, which enforces its
+    own Open/Under Investigation -> Resolved|Accepted with Risk rule).
+    """
+    status: str = Field(pattern="^Under Investigation$")
 
 
 class Deviation(BaseModel):
@@ -123,6 +134,7 @@ class Deviation(BaseModel):
     risk_score: Optional[int] = None
     contributing_reasons: Optional[list[str]] = None
     status: str
+    root_cause: Optional[str] = None
     capa_ref: Optional[str] = None
     assigned_to: Optional[str] = None
     created_at: str
