@@ -1,4 +1,4 @@
-from app.scoring import classify_deviation_risk
+from app.scoring import classify_deviation_risk, score_requirement_risk
 from datetime import datetime, timezone, timedelta
 
 
@@ -48,3 +48,44 @@ def test_resolved_deviation_not_penalized_for_overdue():
     result = classify_deviation_risk("Minor", "Resolved", old(), assigned_to="a")
     reasons_text = " ".join(result["contributing_reasons"])
     assert "Overdue" not in reasons_text
+
+
+# ---------------------------------------------------------------------------
+# score_requirement_risk — S x P x D formal requirement risk assessment
+# ---------------------------------------------------------------------------
+def test_requirement_risk_is_pure_product():
+    result = score_requirement_risk(severity=3, probability=4, detectability=2)
+    assert result["score"] == 24
+
+
+def test_requirement_risk_low_tier_boundary():
+    # Highest score still classified Low: 2*2*2=8 -> Low; 2*2*3=12? check
+    # exact boundary values instead of derived products.
+    assert score_requirement_risk(1, 1, 1)["level"] == "Low"
+    assert score_requirement_risk(2, 2, 2)["score"] == 8
+    assert score_requirement_risk(2, 2, 2)["level"] == "Low"
+
+
+def test_requirement_risk_medium_tier_boundary():
+    result = score_requirement_risk(3, 3, 1)  # score 9
+    assert result["score"] == 9
+    assert result["level"] == "Medium"
+
+
+def test_requirement_risk_high_tier_boundary():
+    result = score_requirement_risk(4, 4, 2)  # score 32
+    assert result["score"] == 32
+    assert result["level"] == "High"
+
+
+def test_requirement_risk_critical_tier_boundary():
+    result = score_requirement_risk(5, 5, 3)  # score 75
+    assert result["score"] == 75
+    assert result["level"] == "Critical"
+
+
+def test_requirement_risk_lowest_and_highest_possible():
+    assert score_requirement_risk(1, 1, 1)["score"] == 1
+    highest = score_requirement_risk(5, 5, 5)
+    assert highest["score"] == 125
+    assert highest["level"] == "Critical"

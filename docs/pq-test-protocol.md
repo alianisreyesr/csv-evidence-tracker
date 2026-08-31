@@ -16,6 +16,16 @@
 > system **actually** exposes, executed end-to-end, with real request/
 > response evidence rather than idealized "Expected = Actual" rows. See
 > `docs/test-summary-report.md` §5 for the gap that removal leaves open.
+>
+> **Post-2.0 update:** `POST /requirements`, `POST /test-cases`, and the
+> formal `POST /requirements/{id}/risk` S×P×D assessment endpoint (see
+> `docs/data-dictionary.md`) have since been implemented and are covered by
+> `tests/test_requirements.py` and `tests/test_scoring.py`. This protocol
+> was executed against the read-only-requirements state of the system on
+> 2026-08-31 and has not been re-run live against the new endpoints, so the
+> steps below still reflect that seeded-data scenario — the gap
+> `docs/test-summary-report.md` §5 flagged is closed at the code/test level,
+> not by re-executing this protocol.
 
 ---
 

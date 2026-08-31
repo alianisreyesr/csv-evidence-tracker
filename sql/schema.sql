@@ -34,7 +34,17 @@ CREATE TABLE IF NOT EXISTS requirements (
                     CHECK(phase IN ('IQ','OQ','PQ')),
     status      TEXT NOT NULL DEFAULT 'Draft'
                     CHECK(status IN ('Draft','Approved','Superseded')),
-    created_at  TEXT NOT NULL DEFAULT (datetime('now','utc'))
+    created_at  TEXT NOT NULL DEFAULT (datetime('now','utc')),
+
+    -- Formal S×P×D risk assessment (see app/scoring.py:score_requirement_risk).
+    -- Null until POST /requirements/{id}/risk is called at least once.
+    risk_severity      INTEGER CHECK(risk_severity IS NULL OR risk_severity BETWEEN 1 AND 5),
+    risk_probability   INTEGER CHECK(risk_probability IS NULL OR risk_probability BETWEEN 1 AND 5),
+    risk_detectability INTEGER CHECK(risk_detectability IS NULL OR risk_detectability BETWEEN 1 AND 5),
+    risk_score         INTEGER,             -- severity * probability * detectability
+    risk_level         TEXT CHECK(risk_level IS NULL OR risk_level IN ('Low','Medium','High','Critical')),
+    risk_assessed_by   TEXT,
+    risk_assessed_at   TEXT
 );
 
 -- ─────────────────────────────────────────────
