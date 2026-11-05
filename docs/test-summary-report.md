@@ -23,7 +23,7 @@
 
 ## 1. Executive Summary
 
-The CSV Evidence Tracker system's automated test suite (57 tests) passes in full, with 85% backend coverage. The PQ protocol (`docs/pq-test-protocol.md`, v2.0) was re-executed live against a running instance and all 8 steps pass. Several gaps between documented and implemented behavior were found during this review and fixed rather than left as documentation drift (see §5). One documented capability from the original protocol — requirement/test-case authoring and formal risk assessment via the API — is **not implemented** and is now tracked as an open item instead of a false PASS claim.
+The CSV Evidence Tracker system's automated test suite passes in full (57 tests at the time of the PQ review; run `pytest` for the current count). The PQ protocol (`docs/pq-test-protocol.md`, v2.0) was re-executed live against a running instance and all 8 steps pass. Several gaps between documented and implemented behavior were found during this review and fixed rather than left as documentation drift (see §5). One documented capability from the original protocol — requirement/test-case authoring and formal risk assessment via the API — is **not implemented** and is now tracked as an open item instead of a false PASS claim.
 
 ---
 
@@ -31,9 +31,9 @@ The CSV Evidence Tracker system's automated test suite (57 tests) passes in full
 
 | Phase | Evidence | Tests | Pass | Fail | Status |
 |---|---|---|---|---|---|
-| Automated suite (`pytest`) | `tests/` (15 modules) | 57 | 57 | 0 | ✅ COMPLETE |
+| Automated suite (`pytest`) | `tests/` (at review time) | 57 | 57 | 0 | ✅ COMPLETE |
 | Performance Qualification (PQ) | `docs/pq-test-protocol.md` v2.0, executed live | 8 | 8 | 0 | ✅ COMPLETE |
-| Backend coverage | `pytest --cov=app --cov-fail-under=70` | — | 85% | — | ✅ ABOVE GATE |
+| Backend coverage | `pytest --cov=app --cov-fail-under=85` | — | 85% | — | ✅ ABOVE GATE |
 
 IQ/OQ as separate numbered protocols (IQ-001, OQ-001…016) referenced in
 v1.0 of this report were not independently re-verified as standalone
@@ -47,7 +47,7 @@ above. Treat the v1.0 IQ/OQ phase table as superseded by this one.
 
 | URS ID | Requirement | Risk Level | Evidence | Status |
 |---|---|---|---|---|
-| URS-001 | Role-Based Access Control | 🔴 HIGH | `tests/test_auth_roles.py` (13 tests) | ✅ PASS |
+| URS-001 | Role-Based Access Control | 🔴 HIGH | `tests/test_auth_roles.py` (`tests/test_auth_roles.py`) | ✅ PASS |
 | URS-002 | Audit Trail — Automatic & Immutable | 🟡 MEDIUM | `tests/test_audit_trail.py`; PQ Steps 7–8 | ✅ PASS |
 | URS-003 | Deviation Lifecycle | 🔴 HIGH | `tests/test_deviation_lifecycle.py`, `test_deviations.py`; PQ Steps 2–5 | ✅ PASS |
 | URS-004 | Data Completeness Validation | 🔴 HIGH | `tests/test_validation.py` | ✅ PASS |

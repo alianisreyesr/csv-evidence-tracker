@@ -1,6 +1,6 @@
 import sqlite3
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Depends
 
@@ -77,7 +77,7 @@ async def list_test_cases(
         JOIN requirements r ON r.id = tc.requirement_id
         WHERE 1=1
     """
-    params = []
+    params: list[Any] = []
     if requirement_id:
         sql += " AND tc.requirement_id=?"
         params.append(requirement_id)

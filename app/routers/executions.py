@@ -3,7 +3,7 @@ from app.database import get_db
 from app.models import ExecutionCreate, Execution
 from app.auth import TokenData
 from app.dependencies import get_current_user
-from typing import List, Optional
+from typing import Any, List, Optional
 from datetime import datetime, timezone
 import json
 
@@ -16,7 +16,7 @@ async def list_executions(
     phase_id: Optional[int] = Query(None),
 ):
     sql = "SELECT * FROM test_executions WHERE 1=1"
-    params = []
+    params: List[Any] = []
     if result:
         sql += " AND result=?"
         params.append(result)

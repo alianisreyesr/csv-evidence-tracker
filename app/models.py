@@ -1,39 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.auth import UserRole
 
 
 # ---------------------------------------------------------------------------
-# Auth models
-# ---------------------------------------------------------------------------
-class UserCreate(BaseModel):
-    username: str = Field(..., min_length=3)
-    password: str = Field(..., min_length=6)
-    role: UserRole
-    full_name: Optional[str] = None
-
-
-class UserOut(BaseModel):
-    username: str
-    role: UserRole
-    full_name: Optional[str] = None
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-    role: UserRole
-    full_name: str
-
-
-class TokenData(BaseModel):
-    username: str
-    role: UserRole
-
-
-# ---------------------------------------------------------------------------
-# Domain models (unchanged)
+# Domain models
 # ---------------------------------------------------------------------------
 class Phase(BaseModel):
     id: int
@@ -110,11 +81,6 @@ class TestCaseCreate(BaseModel):
         None, pattern="^(Functional|Boundary|Negative|Regression)$"
     )
     expected_result: str = Field(..., min_length=3)
-
-
-class TestCaseWithRequirement(TestCase):
-    requirement_code: Optional[str] = None
-    requirement_title: Optional[str] = None
 
 
 class ExecutionCreate(BaseModel):

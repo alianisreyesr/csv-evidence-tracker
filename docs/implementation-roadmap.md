@@ -8,7 +8,7 @@ This roadmap keeps the portfolio documentation accurate by separating implemente
 
 ## Current Demonstration Implementation
 
-The current repository includes a FastAPI backend, React frontend, SQLite persistence, Docker Compose deployment assets, audit middleware, risk-scoring logic, and automated tests covering health, requirements, phases, deviations, audit behavior, and scoring.
+The current repository includes a FastAPI backend, React frontend, SQLite persistence, Docker Compose deployment assets, audit middleware, risk-scoring logic, and JWT authentication with three roles, a requirements-to-test traceability matrix (RTM) with CSV export, test-case authoring, test-execution recording, audit behavior, and scoring, all covered by automated tests.
 
 | Area | Current Demonstration Capability |
 |---|---|
@@ -17,6 +17,9 @@ The current repository includes a FastAPI backend, React frontend, SQLite persis
 | Deviations | Demonstration deviation handling is represented and covered by tests. |
 | Audit trail | Audit-middleware behavior and audit-oriented records are represented and covered by tests. |
 | Risk scoring | Demonstration scoring logic is implemented and tested. |
+| Roles and access | JWT authentication with Analyst, QA Reviewer and Admin roles (implemented; synthetic users, no user table). |
+| Traceability | Requirement-to-test-case RTM view and CSV export (implemented). |
+| Test executions | Execution recording attributed to the authenticated user in the audit trail (implemented). |
 | User interface | React user interface is delivered through the containerized application architecture. |
 | Data scope | The project is restricted to synthetic, non-sensitive demonstration data. |
 

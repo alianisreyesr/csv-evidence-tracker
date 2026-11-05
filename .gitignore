@@ -30,3 +30,17 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Tooling caches / coverage
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+.coverage.*
+*.sqlite
+*.db-journal
+*.db-wal
+*.db-shm
+.env.*
+!.env.example
+.idea/
+.vscode/

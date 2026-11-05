@@ -7,6 +7,27 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Runtime and dev dependencies are split and pinned (`requirements.txt` no longer ships pytest/httpx into the image).
+- Replaced `python-jose` (and its vulnerable `ecdsa` dependency) with `PyJWT`; `pip-audit` now runs in CI.
+- CI: least-privilege `permissions:`, mypy is blocking, coverage gate raised to 85 %, vitest runs before the frontend build.
+- Removed unused duplicate Pydantic models (`UserCreate`, `UserOut`, `Token`, `TokenData`, `TestCaseWithRequirement`).
+- Frontend package version aligned with the API (1.3.0).
+
+### Added
+- Tests for `/executions` and `/test-cases` (coverage of both routers now 100 %) and basic frontend unit tests (vitest).
+- More complete `.gitignore` and `.dockerignore`.
+
+## [1.3.0] — 2026-11-05
+
+### Security
+- `JWT_SECRET_KEY` is required outside development and is passed through `docker-compose.yml`; CI and the IQ protocol use the real variable name.
+- Read endpoints (`/phases`, `/requirements`, `/test-cases`, `/executions`, `/rtm`) require authentication.
+- The deviation resolver is taken from the JWT and persisted as `resolved_by`.
+- The audit middleware honours `DATABASE_PATH` and logs write failures instead of swallowing them.
+- The RTM CSV export neutralises spreadsheet formulas.
+- The API container runs as a non-root user.
+
 ### Fixed — PQ execution review (2026-08-31)
 
 Live-executing the PQ protocol surfaced several gaps between documented and

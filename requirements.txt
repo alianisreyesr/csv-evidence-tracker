@@ -1,10 +1,10 @@
-fastapi>=0.110.0
-uvicorn[standard]>=0.52.4
-pydantic>=2.6.0
-aiosqlite>=0.22.1
-httpx>=0.28.1
-pytest>=9.1.1
-pytest-asyncio>=1.4.0
-python-multipart>=0.0.32
-python-jose[cryptography]>=3.5.0
-bcrypt>=4.1.0
+# Runtime dependencies only (used by the Docker image). Test/lint tooling lives
+# in requirements-dev.txt. Versions are pinned for reproducible builds;
+# Dependabot proposes bumps.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+aiosqlite==0.22.1
+python-multipart==0.0.33
+PyJWT==2.15.1
+bcrypt==5.0.0

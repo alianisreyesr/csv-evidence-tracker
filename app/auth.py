@@ -9,7 +9,7 @@ from typing import Optional
 import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ def decode_token(token: str) -> TokenData:
         if not username or not role:
             raise credentials_exc
         return TokenData(username=username, role=UserRole(role))
-    except (JWTError, ValueError):
+    except (jwt.PyJWTError, ValueError):
         raise credentials_exc
 
 

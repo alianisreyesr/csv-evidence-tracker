@@ -71,7 +71,7 @@ Every commit to `main` and every pull request triggers a three-stage pipeline:
 
 | Stage | What it checks | Gate |
 |---|---|---|
-| **Backend** | `ruff` lint · `mypy` type-check · `pytest` with ≥70% coverage | ❌ Blocks merge if coverage < 70% |
+| **Backend** | `ruff` lint · `mypy` type-check · `pytest` with ≥85% coverage | ❌ Blocks merge if coverage < 85% |
 | **Frontend** | `npm ci` reproducible install · Vite production build | ❌ Blocks merge if build fails |
 | **Docker** | `docker compose up --build` · `/health` smoke test · Swagger docs accessible | ❌ Blocks merge if stack fails to start |
 | **CodeQL** | Python + JavaScript security scanning (weekly + on push) | Advisory |
@@ -98,7 +98,7 @@ curl -H "Authorization: Bearer <token>" \
   http://localhost/api/deviations
 ```
 
-All RBAC controls are covered by the automated test suite in [`tests/test_auth_roles.py`](tests/test_auth_roles.py) (13 test cases, including explicit 401 and 403 negative tests).
+All RBAC controls are covered by the automated test suite in [`tests/test_auth_roles.py`](tests/test_auth_roles.py) (including explicit 401 and 403 negative tests).
 
 ## Frontend Authentication
 
@@ -136,8 +136,8 @@ After `docker compose up --build`, open `http://localhost/`:
 
 The release candidate is validated by GitHub Actions rather than README-only claims:
 
-- **Backend tests passing** with a **70% minimum coverage gate**
-- **13 RBAC-specific tests** covering unauthenticated, forbidden, and authorised scenarios
+- **Backend tests passing** with a **85% minimum coverage gate**
+- **RBAC-specific tests** covering unauthenticated, forbidden, and authorised scenarios
 - Frontend dependencies installed reproducibly with **`npm ci`**
 - React/Vite production build passing
 - Docker Compose configuration validated and service images built from scratch
