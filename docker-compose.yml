@@ -12,7 +12,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env (see .env.example)}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     volumes:
-      - ./data:/app/data
+      - csv_data:/app/data
     networks:
       - csv_net
     healthcheck:
@@ -49,6 +49,9 @@ services:
         condition: service_healthy
       frontend:
         condition: service_started
+
+volumes:
+  csv_data:
 
 networks:
   csv_net:
