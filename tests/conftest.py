@@ -11,7 +11,6 @@ TEST_DB = Path("data/test_tracker.db")
 def patch_db_path(monkeypatch, tmp_path):
     test_db = tmp_path / "test.db"
     monkeypatch.setattr("app.database.DB_PATH", test_db)
-    monkeypatch.setattr("app.audit_middleware.DB_PATH", test_db)
     monkeypatch.setattr("app.routers.executions.get_db", _patched_get_db(test_db))
     return test_db
 

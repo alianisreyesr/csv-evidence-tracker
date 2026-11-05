@@ -1,13 +1,16 @@
+import logging
 import time
 from datetime import datetime, timezone
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 import aiosqlite
-from pathlib import Path
 
 from fastapi import HTTPException
 
+from app import database
 from app.auth import decode_token
+
+logger = logging.getLogger(__name__)
 
 MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 EXCLUDED_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
@@ -15,7 +18,6 @@ EXCLUDED_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
 # app/routers/executions.py) using the same JWT-verified actor this
 # middleware would otherwise log — skip it here to avoid a duplicate row.
 SELF_LOGGED_PATHS = {"/executions"}
-DB_PATH = Path("data/csv_tracker.db")
 
 
 def _actor_from_request(request: Request) -> str:
@@ -52,7 +54,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         ):
             actor = _actor_from_request(request)
             try:
-                async with aiosqlite.connect(DB_PATH) as db:
+                async with aiosqlite.connect(database.DB_PATH) as db:
                     await db.execute(
                         """
                         INSERT INTO audit_log
@@ -76,6 +78,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
                     )
                     await db.commit()
             except Exception:
-                pass  # Never block a request due to audit failure
+                # Never block a request due to audit failure, but never hide
+                # it either: a missing audit row must be visible to operators.
+                logger.exception(
+                    "Failed to write audit_log entry for %s %s",
+                    request.method, request.url.path,
+                )
 
         return response

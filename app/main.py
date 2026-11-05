@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from app.auth import get_current_user
 from app.database import init_db
 from app.audit_middleware import AuditMiddleware
 from app.routers import requirements, test_cases, executions, deviations, phases, audit, rtm
@@ -44,13 +45,13 @@ app.add_middleware(AuditMiddleware)
 # Routers
 # ---------------------------------------------------------------------------
 app.include_router(auth_router.router, prefix="/auth", tags=["Auth"])
-app.include_router(phases.router, prefix="/phases", tags=["Phases"])
-app.include_router(requirements.router, prefix="/requirements", tags=["Requirements"])
-app.include_router(test_cases.router, prefix="/test-cases", tags=["Test Cases"])
-app.include_router(executions.router, prefix="/executions", tags=["Executions"])
+app.include_router(phases.router, prefix="/phases", tags=["Phases"], dependencies=[Depends(get_current_user)])
+app.include_router(requirements.router, prefix="/requirements", tags=["Requirements"], dependencies=[Depends(get_current_user)])
+app.include_router(test_cases.router, prefix="/test-cases", tags=["Test Cases"], dependencies=[Depends(get_current_user)])
+app.include_router(executions.router, prefix="/executions", tags=["Executions"], dependencies=[Depends(get_current_user)])
 app.include_router(deviations.router, prefix="/deviations", tags=["Deviations"])
 app.include_router(audit.router, prefix="/audit-log", tags=["Audit Log"])
-app.include_router(rtm.router, prefix="/rtm", tags=["Traceability"])
+app.include_router(rtm.router, prefix="/rtm", tags=["Traceability"], dependencies=[Depends(get_current_user)])
 
 
 # ---------------------------------------------------------------------------

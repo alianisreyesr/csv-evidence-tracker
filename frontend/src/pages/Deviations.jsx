@@ -147,7 +147,7 @@ export default function Deviations() {
               <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} placeholder="Resolution notes (minimum 10 characters) *" value={resolution.resolution_notes} onChange={e => setResolution(r => ({ ...r, resolution_notes: e.target.value }))} />
             </div>
             <div className="flex gap-3 mt-5">
-              <button className="btn-primary flex-1" disabled={resolution.resolution_notes.length < 10 || resolveMut.isPending} onClick={() => resolveMut.mutate({ id: resolving.id, body: { ...resolution, actor: user?.username, status: 'Resolved' } })}>
+              <button className="btn-primary flex-1" disabled={resolution.resolution_notes.length < 10 || resolveMut.isPending} onClick={() => resolveMut.mutate({ id: resolving.id, body: { ...resolution, status: 'Resolved' } })}>
                 {resolveMut.isPending ? 'Resolving…' : 'Mark Resolved'}
               </button>
               <button className="btn-secondary" onClick={() => setResolving(null)}>Cancel</button>

@@ -147,7 +147,7 @@ async def update_deviation_status(
 async def resolve_deviation(
     deviation_id: int,
     body: DeviationResolve,
-    _user=Depends(require_role(UserRole.qa_reviewer, UserRole.admin)),  # QA+ only
+    user=Depends(require_role(UserRole.qa_reviewer, UserRole.admin)),  # QA+ only
 ):
     """
     Resolve or accept-with-risk a deviation. Valid from Open or, after an
@@ -178,10 +178,12 @@ async def resolve_deviation(
         await db.execute(
             """
             UPDATE deviations
-            SET status = ?, capa_ref = ?, resolved_at = ?, resolution_notes = ?, root_cause = ?
+            SET status = ?, capa_ref = ?, resolved_at = ?, resolution_notes = ?, root_cause = ?,
+                resolved_by = ?
             WHERE id = ? AND status IN ('Open', 'Under Investigation')
             """,
-            (body.status, body.capa_ref, resolved_at, body.resolution_notes, body.root_cause, deviation_id),
+            (body.status, body.capa_ref, resolved_at, body.resolution_notes, body.root_cause,
+             user.username, deviation_id),
         )
         await db.commit()
         updated = await (await db.execute(

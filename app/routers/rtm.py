@@ -8,6 +8,23 @@ from app.dependencies import Admin_Only
 
 router = APIRouter()
 
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _safe_cell(value):
+    """Neutralise spreadsheet formula injection (CWE-1236).
+
+    A text cell starting with = + - @ (or tab/CR) is executed as a formula by
+    Excel/LibreOffice; prefixing a single quote makes it inert text.
+    """
+    if isinstance(value, str) and value.startswith(_FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
+def _row(writer, cells):
+    writer.writerow([_safe_cell(c) for c in cells])
+
 
 @router.get("")
 async def get_rtm():
@@ -70,14 +87,14 @@ async def export_rtm_csv(_user=Admin_Only):
     for req in data:
         test_cases = req["test_cases"]
         if not test_cases:
-            writer.writerow([
+            _row(writer, [
                 req["code"], req["title"], req["priority"], req["phase"], req["status"],
                 "", "", "", "NOT_RUN", "", "",
             ])
             continue
         for tc in test_cases:
             latest = tc["latest_execution"]
-            writer.writerow([
+            _row(writer, [
                 req["code"], req["title"], req["priority"], req["phase"], req["status"],
                 tc["code"], tc["title"], tc["expected_result"],
                 latest["result"] if latest else "NOT_RUN",

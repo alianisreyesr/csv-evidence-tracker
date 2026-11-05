@@ -15,7 +15,29 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 # Config (portfolio-safe defaults — override via env in Docker)
 # ---------------------------------------------------------------------------
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-only-secret-not-for-production")
+DEFAULT_DEV_SECRET = "dev-only-secret-not-for-production"
+DEV_ENVIRONMENTS = {"dev", "development", "test", "testing", "local"}
+
+
+def resolve_secret_key(secret: Optional[str], environment: str) -> str:
+    """Return the JWT signing key, refusing the public default outside dev.
+
+    Anyone can read DEFAULT_DEV_SECRET in the repo, so a deployment that
+    silently falls back to it signs forgeable tokens. Fail at startup instead.
+    """
+    if environment.strip().lower() in DEV_ENVIRONMENTS:
+        return secret or DEFAULT_DEV_SECRET
+    if not secret or secret == DEFAULT_DEV_SECRET:
+        raise RuntimeError(
+            "JWT_SECRET_KEY must be set to a private value when ENVIRONMENT "
+            f"is '{environment}' (the built-in default is only allowed in development)."
+        )
+    return secret
+
+
+SECRET_KEY = resolve_secret_key(
+    os.getenv("JWT_SECRET_KEY"), os.getenv("ENVIRONMENT", "development")
+)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 

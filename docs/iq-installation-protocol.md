@@ -36,7 +36,7 @@ Successful IQ execution is a prerequisite for proceeding to Operational Qualific
 | Docker Engine | ≥ 24.0 installed | ✅ |
 | Docker Compose | ≥ 2.20 installed | ✅ |
 | Git | Repository cloned from `github.com/alianisreyesr/csv-evidence-tracker` | ✅ |
-| `.env` file | Created from `.env.example` with `SECRET_KEY`, `DATABASE_URL` | ✅ |
+| `.env` file | Created from `.env.example` with `JWT_SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES` | ✅ |
 | Ports | 80 (nginx), 8000 (API), 5432 (DB) available | ✅ |
 
 ---
@@ -45,7 +45,7 @@ Successful IQ execution is a prerequisite for proceeding to Operational Qualific
 
 | Variable | Description | Example |
 |---|---|---|
-| `SECRET_KEY` | JWT signing secret (min 32 chars) | `change-me-in-production` |
+| `JWT_SECRET_KEY` | JWT signing secret (required; startup fails if unset or default when `ENVIRONMENT` is not development) | output of `openssl rand -hex 32` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql+aiosqlite:///./csv_tracker.db` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT token TTL | `60` |
 | `APP_VERSION` | Application version (auto-set in code) | `1.3.0` |
@@ -61,7 +61,7 @@ cd csv-evidence-tracker
 
 # 2. Copy environment file
 cp .env.example .env
-# Edit .env and set SECRET_KEY to a secure value
+# Edit .env and set JWT_SECRET_KEY to a secure value
 
 # 3. Start all services
 docker compose up --build -d

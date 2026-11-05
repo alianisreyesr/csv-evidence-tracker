@@ -9,6 +9,8 @@ services:
       DATABASE_PATH: /app/data/csv_tracker.db
       DATA_DIR: /app/data
       ENVIRONMENT: production
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env (see .env.example)}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     volumes:
       - ./data:/app/data
     networks:

@@ -93,7 +93,8 @@ jobs:
 
       - name: Create .env from example
         run: |
-          cp .env.example .env 2>/dev/null || echo "SECRET_KEY=ci-test-secret-key-32chars-minimum" > .env
+          cp .env.example .env
+          echo "JWT_SECRET_KEY=ci-test-secret-key-32chars-minimum" >> .env
           echo "ACCESS_TOKEN_EXPIRE_MINUTES=60" >> .env
 
       - name: Build and start services

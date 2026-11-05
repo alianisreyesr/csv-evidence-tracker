@@ -21,6 +21,10 @@ async def init_db():
     schema = Path("sql/schema.sql").read_text()
     async with aiosqlite.connect(DB_PATH) as db:
         await db.executescript(schema)
+        # Databases created before resolved_by existed: add the column in place.
+        cols = [r[1] for r in await (await db.execute("PRAGMA table_info(deviations)")).fetchall()]
+        if "resolved_by" not in cols:
+            await db.execute("ALTER TABLE deviations ADD COLUMN resolved_by TEXT")
         await db.commit()
         await _seed_if_empty(db)
 

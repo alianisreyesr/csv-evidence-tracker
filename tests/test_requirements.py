@@ -3,9 +3,13 @@ import pytest
 from tests.auth_helpers import auth_headers, login
 
 
+async def _h(client):
+    return auth_headers(await login(client, "analyst01", "Analyst01!"))
+
+
 @pytest.mark.asyncio
 async def test_list_requirements(client):
-    r = await client.get("/requirements")
+    r = await client.get("/requirements", headers=await _h(client))
     assert r.status_code == 200
     data = r.json()
     assert isinstance(data, list)
@@ -14,7 +18,7 @@ async def test_list_requirements(client):
 
 @pytest.mark.asyncio
 async def test_filter_requirements_by_phase(client):
-    r = await client.get("/requirements?phase=OQ")
+    r = await client.get("/requirements?phase=OQ", headers=await _h(client))
     assert r.status_code == 200
     for item in r.json():
         assert item["phase"] == "OQ"
@@ -22,20 +26,20 @@ async def test_filter_requirements_by_phase(client):
 
 @pytest.mark.asyncio
 async def test_get_requirement_by_id(client):
-    r = await client.get("/requirements/1")
+    r = await client.get("/requirements/1", headers=await _h(client))
     assert r.status_code == 200
     assert r.json()["id"] == 1
 
 
 @pytest.mark.asyncio
 async def test_requirement_not_found(client):
-    r = await client.get("/requirements/9999")
+    r = await client.get("/requirements/9999", headers=await _h(client))
     assert r.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_requirement_test_cases(client):
-    r = await client.get("/requirements/1/test-cases")
+    r = await client.get("/requirements/1/test-cases", headers=await _h(client))
     assert r.status_code == 200
     data = r.json()
     assert "requirement" in data
@@ -66,7 +70,7 @@ async def test_create_requirement(client):
     assert data["risk_level"] is None
 
     # New requirement shows up on GET /requirements.
-    listing = await client.get("/requirements")
+    listing = await client.get("/requirements", headers=await _h(client))
     assert any(item["code"] == "URS-900" for item in listing.json())
 
 
@@ -110,7 +114,7 @@ async def test_create_test_case(client):
     assert data["requirement_id"] == 1
     assert data["requirement_code"] == "URS-001"
 
-    linked = await client.get("/requirements/1/test-cases")
+    linked = await client.get("/requirements/1/test-cases", headers=await _h(client))
     codes = [tc["code"] for tc in linked.json()["test_cases"]]
     assert "TC-OQ-900" in codes
 
@@ -236,7 +240,7 @@ async def test_requirement_risk_visible_in_rtm(client):
         json={"severity": 4, "probability": 4, "detectability": 4, "assessed_by": "quinn.reviewer"},
         headers=headers,
     )
-    r = await client.get("/rtm")
+    r = await client.get("/rtm", headers=await _h(client))
     assert r.status_code == 200
     req_1 = next(item for item in r.json() if item["id"] == 1)
     assert req_1["risk_score"] == 64

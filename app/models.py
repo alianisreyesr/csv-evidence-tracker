@@ -150,7 +150,7 @@ class DeviationCreate(BaseModel):
 
 
 class DeviationResolve(BaseModel):
-    actor: str = Field(..., min_length=2)
+    # The resolver is taken from the verified JWT, never from the body.
     resolution_notes: str = Field(..., min_length=10)
     root_cause: Optional[str] = None
     capa_ref: Optional[str] = None
@@ -184,6 +184,7 @@ class Deviation(BaseModel):
     created_at: str
     resolved_at: Optional[str] = None
     resolution_notes: Optional[str] = None
+    resolved_by: Optional[str] = None
 
 
 class AuditEntry(BaseModel):
