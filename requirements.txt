@@ -1,7 +1,7 @@
 # Runtime dependencies only (used by the Docker image). Test/lint tooling lives
 # in requirements-dev.txt. Versions are pinned for reproducible builds;
 # Dependabot proposes bumps.
-fastapi==0.162.0
+fastapi==0.165.0
 uvicorn[standard]==0.54.0
 pydantic==2.14.3
 aiosqlite==0.22.1
