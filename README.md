@@ -310,7 +310,7 @@ Reference documents:
 
 **Built by [Alianis Reyes Reyes](https://www.linkedin.com/in/alianis-reyes-reyes/)**
 
-Information Systems @ UPRM · Eli Lilly Tech@Lilly Alumni
+Information Systems @ UPRM
 
 *Every design decision asks: would this evidence still be trustworthy under inspection?*
 
