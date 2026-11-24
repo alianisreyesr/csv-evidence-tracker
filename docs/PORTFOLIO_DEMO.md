@@ -12,7 +12,7 @@ Use this 3–5 minute walkthrough to present the CSV Evidence Tracker as a portf
 4. **Deviations:** Walk through a deviation from identification and impact assessment to investigation, follow-up action, and closure.
 5. **Audit Log:** Explain that an attributable record of actions, timestamps, and affected objects supports auditability. The prototype illustrates the concept; it is not an immutable production audit trail.
 
-## Recruiter narrative
+## Project narrative
 
 > I built this project to combine data-engineering skills with regulated quality workflows. It models requirements-to-test traceability, validation evidence, deviation management, and auditability concepts through a FastAPI and React application with synthetic data. I intentionally scoped it as a portfolio prototype; a real GxP deployment would require formal intended use, risk assessment, validation, security controls, and quality-system governance.
 
