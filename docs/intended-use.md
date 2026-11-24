@@ -10,7 +10,7 @@ The application is intended for demonstration, learning, and portfolio-review pu
 
 - Validation, quality assurance, and CSV professionals evaluating an illustrative evidence-traceability workflow.
 - Data, software, and automation professionals demonstrating familiarity with regulated-system concepts.
-- Recruiters, hiring managers, and reviewers assessing the project’s technical and validation-oriented design.
+- Technical reviewers and quality professionals assessing the project’s technical and validation-oriented design.
 
 ## Intended Use
 
