@@ -21,4 +21,4 @@ Keep images small (< 500 KB each) and free of any real/regulated data. Use only 
 
 ## Optional: GIF of a short flow
 
-A 10–15 second GIF of “open deviation → review → audit log updates” is high impact for recruiters.
+A 10–15 second GIF of “open deviation → review → audit log updates” is high impact for anyone skimming the repository.

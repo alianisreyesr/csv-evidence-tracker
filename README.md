@@ -13,7 +13,7 @@
 
 **GxP · CSV · ALCOA+ · RBAC · Full-Stack Auth · Requirements Traceability · IQ/OQ/PQ**
 
-*A portfolio-safe full-stack prototype for traceable validation evidence.*
+*Requirements-to-test traceability, IQ/OQ/PQ evidence and audit trail for Computer System Validation — full-stack prototype (synthetic data).*
 
 [Screenshots](#portfolio-preview) · [Quick Start](#quick-start) · [Demo flow](#demo-flow) · [Case study](docs/CASE_STUDY.md) · [Demo guide](docs/PORTFOLIO_DEMO.md) · [Architecture](docs/architecture.md) · [Validation Boundary](docs/VALIDATION_BOUNDARY.md) · [Data Integrity Controls](docs/data-integrity-controls.md)
 
